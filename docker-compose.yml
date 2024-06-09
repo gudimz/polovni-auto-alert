@@ -1,0 +1,83 @@
+version: '3.8'
+
+services:
+  notifier:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        BINARY: notifier
+    command: /app/notifier
+    restart: always
+    environment:
+      - LOG_LEVEL=info
+      - TELEGRAM_API_TOKEN= # Your API token
+      - TELEGRAM_UPDATE_CONFIG_TIMEOUT=60
+      - TELEGRAM_DEBUG=false
+      - DB_HOST=db
+      - DB_PORT=5432
+      - DB_USER=postgres
+      - DB_PASSWORD=postgres
+      - DB_NAME=app_db
+      - DB_SSLMODE=disable
+    depends_on:
+      - db
+
+  scraper:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        BINARY: scraper
+    command: /app/scraper
+    restart: always
+    environment:
+      - LOG_LEVEL=info
+      - SCRAPER_INTERVAL=40m
+      - PAGE_LIMIT=9999
+      - DB_HOST=db
+      - DB_PORT=5432
+      - DB_USER=postgres
+      - DB_PASSWORD=postgres
+      - DB_NAME=app_db
+      - DB_SSLMODE=disable
+    depends_on:
+      - db
+
+  worker:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        BINARY: worker
+    command: /app/worker
+    restart: always
+    environment:
+      - LOG_LEVEL=info
+      - WORKER_NOTIFICATION_INTERVAL=60m
+      - TELEGRAM_API_TOKEN= # Your API token
+      - TELEGRAM_UPDATE_CONFIG_TIMEOUT=60
+      - TELEGRAM_DEBUG=false
+      - DB_HOST=db
+      - DB_PORT=5432
+      - DB_USER=postgres
+      - DB_PASSWORD=postgres
+      - DB_NAME=app_db
+      - DB_SSLMODE=disable
+    depends_on:
+      - db
+
+  db:
+    image: postgres:15
+    restart: always
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DB=app_db
+    ports:
+      - "5432:5432"
+
+volumes:
+  postgres_data:
