@@ -38,6 +38,7 @@ func run() {
 		logger.WithIsJSON(true))
 
 	dbCfg := db.NewConfig()
+
 	repo, err := db.NewRepo(ctx, l, dbCfg)
 	if err != nil {
 		l.Error("failed to initialize repository", logger.ErrAttr(err))

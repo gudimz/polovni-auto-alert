@@ -49,10 +49,14 @@ func NewService(l *logger.Logger, repo Repository) (*Service, error) {
 
 // UpsertUser creates or updates a user.
 func (s *Service) UpsertUser(ctx context.Context, user ds.UserRequest) (ds.UserResponse, error) {
+	lg := logger.L(ctx).With(
+		logger.Int64Attr("user_id", user.ID),
+	)
+
 	u, err := s.repo.UpsertUser(ctx, user)
 	if err != nil {
-		s.l.Error("failed to create user", logger.ErrAttr(err))
-		return ds.UserResponse{}, err
+		lg.Error("failed to create user", logger.ErrAttr(err))
+		return ds.UserResponse{}, errors.Wrap(err, "failed to create user")
 	}
 
 	return u, nil
@@ -62,10 +66,15 @@ func (s *Service) UpsertUser(ctx context.Context, user ds.UserRequest) (ds.UserR
 func (s *Service) CreateSubscription(
 	ctx context.Context, subscription ds.SubscriptionRequest,
 ) (ds.SubscriptionResponse, error) {
+	lg := s.l.With(logger.Int64Attr("user_id", subscription.UserID),
+		logger.StringAttr("brand", subscription.Brand),
+		logger.AnyAttr("models", subscription.Model),
+	)
+
 	sub, err := s.repo.CreateSubscription(ctx, subscription)
 	if err != nil {
-		s.l.Error("failed to create subscription", logger.ErrAttr(err))
-		return ds.SubscriptionResponse{}, err
+		lg.Error("failed to create subscription", logger.ErrAttr(err))
+		return ds.SubscriptionResponse{}, errors.Wrap(err, "failed to create subscription")
 	}
 
 	return sub, nil
@@ -73,10 +82,12 @@ func (s *Service) CreateSubscription(
 
 // RemoveAllSubscriptionsByUserID removes all subscriptions and associated listings for a given user.
 func (s *Service) RemoveAllSubscriptionsByUserID(ctx context.Context, userID int64) error {
+	lg := s.l.With(logger.Int64Attr("user_id", userID))
+
 	subscriptions, err := s.repo.GetSubscriptionsByUserID(ctx, userID)
 	if err != nil {
-		s.l.Error("failed to get subscriptions by user id", logger.ErrAttr(err))
-		return err
+		lg.Error("failed to get subscriptions by user id", logger.ErrAttr(err))
+		return errors.Wrap(err, "failed to get subscriptions by user id")
 	}
 
 	ids := make([]string, len(subscriptions))
@@ -85,18 +96,18 @@ func (s *Service) RemoveAllSubscriptionsByUserID(ctx context.Context, userID int
 	}
 
 	if err = s.repo.DeleteListingsBySubscriptionIDs(ctx, ids); err != nil {
-		s.l.Error("failed to delete listings by subscription ids", logger.ErrAttr(err))
-		return err
+		lg.Error("failed to delete listings by subscription ids", logger.ErrAttr(err))
+		return errors.Wrap(err, "failed to delete listings by subscription ids")
 	}
 
 	if err = s.repo.DeleteSubscriptionsByUserID(ctx, userID); err != nil {
-		s.l.Error("failed to delete subscriptions by user id", logger.ErrAttr(err))
-		return err
+		lg.Error("failed to delete subscriptions by user id", logger.ErrAttr(err))
+		return errors.Wrap(err, "failed to delete subscriptions by user")
 	}
 
 	if err = s.repo.DeleteUserByID(ctx, userID); err != nil {
-		s.l.Error("failed to delete user by id", logger.ErrAttr(err))
-		return err
+		lg.Error("failed to delete user by id", logger.ErrAttr(err))
+		return errors.Wrap(err, "failed to delete user by id")
 	}
 
 	// TODO add transactions in future
@@ -106,25 +117,28 @@ func (s *Service) RemoveAllSubscriptionsByUserID(ctx context.Context, userID int
 
 // GetAllSubscriptionsByUserID retrieves all subscriptions for a given user.
 func (s *Service) GetAllSubscriptionsByUserID(ctx context.Context, userID int64) ([]ds.SubscriptionResponse, error) {
+	lg := s.l.With(logger.Int64Attr("user_id", userID))
+
 	subscriptions, err := s.repo.GetSubscriptionsByUserID(ctx, userID)
 	if err != nil {
-		s.l.Error("failed to get subscriptions by user id", logger.ErrAttr(err))
-		return []ds.SubscriptionResponse{}, err
+		lg.Error("failed to get subscriptions by user id", logger.ErrAttr(err))
+		return []ds.SubscriptionResponse{}, errors.Wrap(err, "failed to get subscriptions by user id")
 	}
 
-	return subscriptions, err
+	return subscriptions, nil
 }
 
 // RemoveSubscriptionByID removes subscription and associated listings for a given subscription id.
 func (s *Service) RemoveSubscriptionByID(ctx context.Context, id string) error {
+	lg := s.l.With(logger.StringAttr("subscription_id", id))
 	if err := s.repo.DeleteListingsBySubscriptionIDs(ctx, []string{id}); err != nil {
-		s.l.Error("failed to delete listings by subscription ids", logger.ErrAttr(err))
-		return err
+		lg.Error("failed to delete listings by subscription ids", logger.ErrAttr(err))
+		return errors.Wrap(err, "failed to delete listings by subscription ids")
 	}
 
 	if err := s.repo.DeleteSubscriptionByID(ctx, id); err != nil {
-		s.l.Error("failed to delete subscription id", logger.ErrAttr(err))
-		return err
+		lg.Error("failed to delete subscription by id", logger.ErrAttr(err))
+		return errors.Wrap(err, "failed to delete subscription by id")
 	}
 
 	// TODO add transactions in future

@@ -28,7 +28,9 @@ func (h *BotHandler) handleListSubscriptions(ctx context.Context, chatID int64) 
 // buildSubscriptionListMessage builds a message listing all subscriptions.
 func (h *BotHandler) buildSubscriptionListMessage(subscriptions []ds.SubscriptionResponse) string {
 	var sb strings.Builder
+
 	sb.WriteString("📋 Your current subscriptions:\n")
+
 	for _, sub := range subscriptions {
 		sb.WriteString(h.buildMessageWithSubscription(sub, true))
 	}

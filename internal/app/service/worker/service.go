@@ -40,16 +40,19 @@ func (s *Service) Start(ctx context.Context) error {
 
 	go func() {
 		defer s.recoverPanic()
+
 		for {
 			select {
 			case <-ticker.C:
 				s.l.Info("worker ticker ticked")
+
 				if err := s.ProcessListings(ctx); err != nil {
 					s.l.Error("failed to process listings", logger.ErrAttr(err))
 				}
 			case <-ctx.Done():
 				ticker.Stop()
 				s.l.Info("worker stopped", logger.ErrAttr(ctx.Err()))
+
 				return
 			}
 		}
@@ -70,26 +73,39 @@ func (s *Service) ProcessListings(ctx context.Context) error {
 
 	for _, listing := range listings {
 		var subscription ds.SubscriptionResponse
+
 		subscription, err = s.repo.GetSubscriptionByID(ctx, listing.SubscriptionID)
 		if err != nil {
-			s.l.Error("failed to get subscription", logger.ErrAttr(err))
+			s.l.Error("failed to get subscription",
+				logger.ErrAttr(err),
+				logger.StringAttr("subscription_id", listing.SubscriptionID),
+			)
 		}
 
 		notification := ds.CreateNotificationRequest{
 			ListingID: listing.ID,
+			Status:    ds.StatusSent,
+			Reason:    "",
 		}
 
 		if err = s.sendListing(ctx, subscription.UserID, listing); err != nil {
-			s.l.Error("failed to send listing", logger.ErrAttr(err))
+			s.l.Error("failed to send listing",
+				logger.ErrAttr(err),
+				logger.Int64Attr("user_id", subscription.UserID),
+				logger.StringAttr("listing_id", listing.ID),
+			)
+
 			notification.Status = ds.StatusFailed
 			notification.Reason = err.Error()
-		} else {
-			notification.Status = ds.StatusSent
 		}
 
 		_, err = s.repo.CreateNotification(ctx, notification)
 		if err != nil {
-			s.l.Error("failed to create notification", logger.ErrAttr(err))
+			s.l.Error("failed to create notification",
+				logger.ErrAttr(err),
+				logger.Int64Attr("user_id", subscription.UserID),
+				logger.StringAttr("listing_id", listing.ID),
+			)
 		}
 
 		if err = s.repo.UpsertListing(ctx, ds.UpsertListingRequest{
@@ -106,11 +122,17 @@ func (s *Service) ProcessListings(ctx context.Context) error {
 			Date:           listing.Date,
 			IsNeedSend:     false,
 		}); err != nil {
-			s.l.Error("failed to update listing", logger.ErrAttr(err))
+			s.l.Error("failed to update listing",
+				logger.ErrAttr(err),
+				logger.Int64Attr("user_id", subscription.UserID),
+				logger.StringAttr("listing_id", listing.ID),
+				logger.StringAttr("subscription_id", listing.SubscriptionID),
+			)
 		}
 	}
 
 	s.l.Info("processed all listings")
+
 	return nil
 }
 
@@ -148,7 +170,10 @@ func (s *Service) sendListing(ctx context.Context, chatID int64, listing ds.List
 		var apiErr *tgbotapi.Error
 		if errors.As(err, &apiErr) && apiErr.Code == http.StatusForbidden { // user blocked tg bot
 			if err = s.RemoveAllSubscriptionsByUserID(ctx, chatID); err != nil {
-				s.l.Warn("failed to remove all subscriptions by userID", logger.ErrAttr(err))
+				s.l.Warn("failed to remove all subscriptions by userID",
+					logger.ErrAttr(err),
+					logger.Int64Attr("user_id", chatID),
+				)
 			}
 		}
 

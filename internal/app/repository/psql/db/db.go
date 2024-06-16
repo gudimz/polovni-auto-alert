@@ -13,6 +13,7 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/jackc/pgx/v5/pgxpool"
 	_ "github.com/lib/pq" // Register PostgreSQL driver
+	pkgerrors "github.com/pkg/errors"
 
 	"github.com/gudimz/polovni-auto-alert/internal/app/repository/migrations"
 	psql "github.com/gudimz/polovni-auto-alert/internal/app/repository/psql/db/sqlc_gen"
@@ -34,12 +35,12 @@ func NewRepo(ctx context.Context, l *logger.Logger, cfg *Config) (*Repository, e
 
 	config, err := pgxpool.ParseConfig(dsn)
 	if err != nil {
-		return nil, err
+		return nil, pkgerrors.Wrap(err, "failed to pars postgres connection config")
 	}
 
 	pool, err := pgxpool.NewWithConfig(ctx, config)
 	if err != nil {
-		return nil, err
+		return nil, pkgerrors.Wrap(err, "failed to connect to postgres")
 	}
 
 	return &Repository{
@@ -54,7 +55,13 @@ func (r *Repository) Connect() (*sql.DB, error) {
 	hostPort := net.JoinHostPort(r.cfg.Host, r.cfg.Port)
 	dsn := fmt.Sprintf("postgresql://%s:%s@%s/%s?sslmode=%s",
 		r.cfg.User, r.cfg.Password, hostPort, r.cfg.DBName, r.cfg.SSLMode)
-	return sql.Open("postgres", dsn)
+
+	db, err := sql.Open("postgres", dsn)
+	if err != nil {
+		return nil, pkgerrors.Wrapf(err, "failed to connect to database %s", dsn)
+	}
+
+	return db, nil
 }
 
 func (r *Repository) Migrate() error {
@@ -64,27 +71,28 @@ func (r *Repository) Migrate() error {
 	}
 	defer db.Close()
 
-	driver, err := postgres.WithInstance(db, &postgres.Config{})
+	driver, err := postgres.WithInstance(db, &postgres.Config{}) //nolint:exhaustruct,nolintlint
 	if err != nil {
-		return err
+		return pkgerrors.Wrap(err, "failed to create DB driver")
 	}
 
 	d, err := iofs.New(migrations.Files, "files")
 	if err != nil {
-		return err
+		return pkgerrors.Wrap(err, "failed to create migration files")
 	}
 
 	m, err := migrate.NewWithInstance("iofs", d, r.cfg.DBName, driver)
 	if err != nil {
-		return err
+		return pkgerrors.Wrapf(err, "failed to create migration instance")
 	}
 
 	err = m.Up()
 	if err != nil && !errors.Is(err, migrate.ErrNoChange) {
-		return err
+		return pkgerrors.Wrap(err, "failed to run migrations")
 	}
 
 	r.l.Info("Database migrated successfully")
+
 	return nil
 }
 
@@ -98,7 +106,7 @@ func (r *Repository) Close() {
 func (r *Repository) UpsertUser(ctx context.Context, request ds.UserRequest) (ds.UserResponse, error) {
 	row, err := r.queries.UpsertUser(ctx, userToDB(request))
 	if err != nil {
-		return ds.UserResponse{}, err
+		return ds.UserResponse{}, pkgerrors.Wrap(err, "failed to upsert user to DB")
 	}
 
 	return userFromDB(row), nil
@@ -107,7 +115,7 @@ func (r *Repository) UpsertUser(ctx context.Context, request ds.UserRequest) (ds
 func (r *Repository) GetAllSubscriptions(ctx context.Context) ([]ds.SubscriptionResponse, error) {
 	rows, err := r.queries.GetAllSubscriptions(ctx)
 	if err != nil {
-		return []ds.SubscriptionResponse{}, err
+		return []ds.SubscriptionResponse{}, pkgerrors.Wrap(err, "failed to get all subscriptions from DB")
 	}
 
 	if len(rows) == 0 {
@@ -115,11 +123,13 @@ func (r *Repository) GetAllSubscriptions(ctx context.Context) ([]ds.Subscription
 	}
 
 	subscriptions := make([]ds.SubscriptionResponse, 0, len(rows))
+
 	for _, row := range rows {
 		var subscription ds.SubscriptionResponse
+
 		subscription, err = subscriptionFromDB(row)
 		if err != nil {
-			r.l.Warn("Failed to parse subscription from DB", logger.ErrAttr(err))
+			r.l.Warn("failed to convert subscription from DB", logger.ErrAttr(err))
 			continue
 		}
 
@@ -134,7 +144,7 @@ func (r *Repository) CreateSubscription(
 ) (ds.SubscriptionResponse, error) {
 	row, err := r.queries.CreateSubscription(ctx, subscriptionToDB(sub))
 	if err != nil {
-		return ds.SubscriptionResponse{}, err
+		return ds.SubscriptionResponse{}, pkgerrors.Wrap(err, "failed to create subscription to DB")
 	}
 
 	return subscriptionFromDB(row)
@@ -143,10 +153,14 @@ func (r *Repository) CreateSubscription(
 func (r *Repository) UpsertListing(ctx context.Context, listing ds.UpsertListingRequest) error {
 	req, err := listingToDB(listing)
 	if err != nil {
-		return err
+		return pkgerrors.Wrap(err, "failed to convert listing to DB")
 	}
 
-	return r.queries.UpsertListing(ctx, req)
+	if err = r.queries.UpsertListing(ctx, req); err != nil {
+		return pkgerrors.Wrap(err, "failed to upsert listing to DB")
+	}
+
+	return nil
 }
 
 func (r *Repository) GetListingsBySubscriptionID(
@@ -159,7 +173,7 @@ func (r *Repository) GetListingsBySubscriptionID(
 
 	rows, err := r.queries.GetListingsBySubscriptionID(ctx, id)
 	if err != nil {
-		return []ds.ListingResponse{}, err
+		return []ds.ListingResponse{}, pkgerrors.Wrap(err, "failed to get listings by sub ID from DB")
 	}
 
 	if len(rows) == 0 {
@@ -167,11 +181,13 @@ func (r *Repository) GetListingsBySubscriptionID(
 	}
 
 	listings := make([]ds.ListingResponse, 0, len(rows))
+
 	for _, row := range rows {
 		var listing ds.ListingResponse
+
 		listing, err = listingFromDB(row)
 		if err != nil {
-			r.l.Warn("Failed to parse listing from DB", logger.ErrAttr(err))
+			r.l.Warn("failed to convert listing from DB", logger.ErrAttr(err))
 			continue
 		}
 
@@ -184,15 +200,17 @@ func (r *Repository) GetListingsBySubscriptionID(
 func (r *Repository) GetListingsByIsNeedSend(ctx context.Context, isNeedSend bool) ([]ds.ListingResponse, error) {
 	rows, err := r.queries.GetListingsByIsNeedSend(ctx, isNeedSend)
 	if err != nil {
-		return []ds.ListingResponse{}, err
+		return []ds.ListingResponse{}, pkgerrors.Wrap(err, "failed to get listings by is_need_send from DB")
 	}
 
 	listings := make([]ds.ListingResponse, 0, len(rows))
+
 	for _, row := range rows {
 		var listing ds.ListingResponse
+
 		listing, err = listingFromDB(row)
 		if err != nil {
-			r.l.Warn("Failed to parse listing from DB", logger.ErrAttr(err))
+			r.l.Warn("failed to convert listing from DB", logger.ErrAttr(err))
 			continue
 		}
 
@@ -207,7 +225,7 @@ func (r *Repository) CreateNotification(
 ) (ds.NotificationResponse, error) {
 	row, err := r.queries.CreateNotification(ctx, notificationToDB(notification))
 	if err != nil {
-		return ds.NotificationResponse{}, err
+		return ds.NotificationResponse{}, pkgerrors.Wrap(err, "failed to create notification to DB")
 	}
 
 	return notificationFromDB(row)
@@ -216,7 +234,7 @@ func (r *Repository) CreateNotification(
 func (r *Repository) GetSubscriptionsByUserID(ctx context.Context, userID int64) ([]ds.SubscriptionResponse, error) {
 	rows, err := r.queries.GetSubscriptionsByUserID(ctx, userID)
 	if err != nil {
-		return []ds.SubscriptionResponse{}, err
+		return []ds.SubscriptionResponse{}, pkgerrors.Wrap(err, "failed to get subscriptions by user id from DB")
 	}
 
 	if len(rows) == 0 {
@@ -224,11 +242,13 @@ func (r *Repository) GetSubscriptionsByUserID(ctx context.Context, userID int64)
 	}
 
 	subscriptions := make([]ds.SubscriptionResponse, 0, len(rows))
+
 	for _, row := range rows {
 		var subscription ds.SubscriptionResponse
+
 		subscription, err = subscriptionFromDB(row)
 		if err != nil {
-			r.l.Warn("Failed to parse subscription from DB", logger.ErrAttr(err))
+			r.l.Warn("failed to convert subscription from DB", logger.ErrAttr(err))
 			continue
 		}
 
@@ -246,7 +266,7 @@ func (r *Repository) GetSubscriptionByID(ctx context.Context, id string) (ds.Sub
 
 	row, err := r.queries.GetSubscriptionByID(ctx, pgUUID)
 	if err != nil {
-		return ds.SubscriptionResponse{}, err
+		return ds.SubscriptionResponse{}, pkgerrors.Wrap(err, "failed to get subscription by ID from DB")
 	}
 
 	return subscriptionFromDB(row)
@@ -254,6 +274,7 @@ func (r *Repository) GetSubscriptionByID(ctx context.Context, id string) (ds.Sub
 
 func (r *Repository) DeleteListingsBySubscriptionIDs(ctx context.Context, ids []string) error {
 	pgUUIDs := make([]pgtype.UUID, 0, len(ids))
+
 	for _, id := range ids {
 		pgUUID, err := stringToPgUUID(id)
 		if err != nil {
@@ -263,15 +284,27 @@ func (r *Repository) DeleteListingsBySubscriptionIDs(ctx context.Context, ids []
 		pgUUIDs = append(pgUUIDs, pgUUID)
 	}
 
-	return r.queries.DeleteListingsBySubscriptionIDs(ctx, pgUUIDs)
+	if err := r.queries.DeleteListingsBySubscriptionIDs(ctx, pgUUIDs); err != nil {
+		return pkgerrors.Wrap(err, "failed to delete listings by sub ID to DB")
+	}
+
+	return nil
 }
 
 func (r *Repository) DeleteUserByID(ctx context.Context, id int64) error {
-	return r.queries.DeleteUserByID(ctx, id)
+	if err := r.queries.DeleteUserByID(ctx, id); err != nil {
+		return pkgerrors.Wrap(err, "failed to delete user by ID to DB")
+	}
+
+	return nil
 }
 
 func (r *Repository) DeleteSubscriptionsByUserID(ctx context.Context, userID int64) error {
-	return r.queries.DeleteSubscriptionsByUserID(ctx, userID)
+	if err := r.queries.DeleteSubscriptionsByUserID(ctx, userID); err != nil {
+		return pkgerrors.Wrap(err, "failed to delete subscriptions  by user ID to DB")
+	}
+
+	return nil
 }
 
 func (r *Repository) DeleteSubscriptionByID(ctx context.Context, id string) error {
@@ -280,5 +313,9 @@ func (r *Repository) DeleteSubscriptionByID(ctx context.Context, id string) erro
 		return err
 	}
 
-	return r.queries.DeleteSubscriptionByID(ctx, pgUUID)
+	if err = r.queries.DeleteSubscriptionByID(ctx, pgUUID); err != nil {
+		return pkgerrors.Wrap(err, "failed to delete subscription by ID from DB")
+	}
+
+	return nil
 }
