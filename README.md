@@ -1,7 +1,7 @@
 # Polovni Auto Alert
 
 ![GitHub Actions Workflow Status](https://img.shields.io/github/actions/workflow/status/gudimz/polovni-auto-alert/checker.yaml)
-[![Coverage Status](https://coveralls.io/repos/github/gudimz/gudimz/badge.svg?branch=main)](https://coveralls.io/github/gudimz/gudimz?branch=main)
+[![Coverage Status](https://coveralls.io/repos/github/gudimz/polovni-auto-alert/badge.svg?branch=main)](https://coveralls.io/github/gudimz/polovni-auto-alert?branch=main)
 [![Go Report Card](https://goreportcard.com/badge/github.com/gudimz/polovni-auto-alert)](https://goreportcard.com/report/github.com/gudimz/polovni-auto-alert)
 ![GitHub License](https://img.shields.io/github/license/gudimz/polovni-auto-alert)
 ![GitHub go.mod Go version](https://img.shields.io/github/go-mod/go-version/gudimz/polovni-auto-alert)
