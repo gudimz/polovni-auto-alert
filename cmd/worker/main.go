@@ -33,41 +33,43 @@ func run() {
 		panic(err)
 	}
 
-	l := logger.NewLogger(
+	lg := logger.NewLogger(
 		logger.WithLevel(cfg.LogLevel),
 		logger.WithAddSource(true),
 		logger.WithIsJSON(true))
-	logger.SetDefault(l)
+	logger.SetDefault(lg)
 
 	dbCfg := db.NewConfig()
-	repo, err := db.NewRepo(ctx, l, dbCfg)
+
+	repo, err := db.NewRepo(ctx, lg, dbCfg)
 	if err != nil {
-		l.Error("failed to initialize repository", logger.ErrAttr(err))
+		lg.Error("failed to initialize repository", logger.ErrAttr(err))
 		return
 	}
 	defer repo.Close()
 
 	tgCfg := tgCli.NewConfig()
-	bot, err := tgCli.NewBot(l, tgCfg)
+
+	bot, err := tgCli.NewBot(lg, tgCfg)
 	if err != nil {
-		l.Error("failed to create bot", logger.ErrAttr(err))
+		lg.Error("failed to create bot", logger.ErrAttr(err))
 		return
 	}
 
-	svc := worker.NewService(l, repo, bot, cfg.WorkerNotificationInterval)
+	svc := worker.NewService(lg, repo, bot, cfg.WorkerNotificationInterval)
 
 	go func() {
 		if err = svc.Start(ctx); err != nil {
-			l.Error("failed to start worker service", logger.ErrAttr(err))
+			lg.Error("failed to start worker service", logger.ErrAttr(err))
 			stop()
 		}
 	}()
 
-	l.Info("worker service started")
+	lg.Info("worker service started")
 
 	<-ctx.Done()
 
 	stop()
 
-	l.Info("service stopped gracefully")
+	lg.Info("service stopped gracefully")
 }

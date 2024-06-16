@@ -45,16 +45,19 @@ func (s *Service) Start(ctx context.Context) error {
 
 	go func() {
 		defer s.recoverPanic()
+
 		for {
 			select {
 			case <-ticker.C:
 				s.l.Info("scraper ticker ticked")
+
 				if err = s.ScrapeNewListings(ctx); err != nil {
 					s.l.Error("failed to scrape new listings", logger.ErrAttr(err))
 				}
 			case <-ctx.Done():
 				ticker.Stop()
 				s.l.Info("scraper stopped", logger.ErrAttr(ctx.Err()))
+
 				return
 			}
 		}
@@ -70,7 +73,7 @@ func (s *Service) ScrapeAllListings(ctx context.Context) error {
 	subscriptions, err := s.repo.GetAllSubscriptions(ctx)
 	if err != nil {
 		s.l.Error("failed to get subscriptions", logger.ErrAttr(err))
-		return err
+		return errors.Wrap(err, "failed to get subscriptions")
 	}
 
 	if len(subscriptions) == 0 {
@@ -89,6 +92,7 @@ func (s *Service) ScrapeAllListings(ctx context.Context) error {
 	}
 
 	s.l.Info("scraped all listings successfully")
+
 	return nil
 }
 
@@ -123,12 +127,15 @@ func (s *Service) scrapeSubscriptions(
 	scrapeFunc func(context.Context, ds.SubscriptionResponse) error,
 ) chan error {
 	var wg sync.WaitGroup
+
 	errCh := make(chan error, len(subscriptions))
 
 	for _, subscription := range subscriptions {
 		wg.Add(1)
+
 		go func(sub ds.SubscriptionResponse) {
 			defer wg.Done()
+
 			if err := scrapeFunc(ctx, sub); err != nil {
 				errCh <- err
 			}
@@ -136,12 +143,14 @@ func (s *Service) scrapeSubscriptions(
 	}
 
 	wg.Wait()
+
 	return errCh
 }
 
 // scrapeAllListings scrapes all listings for a subscription.
 func (s *Service) scrapeAllListings(ctx context.Context, sub ds.SubscriptionResponse) error {
 	params := subscriptionToParams(sub)
+
 	listings, err := s.scrape(ctx, params)
 	if err != nil {
 		return errors.Wrap(err, "failed to scrape listings by subscription ID "+sub.ID)
@@ -167,7 +176,7 @@ func (s *Service) scrapeAllListings(ctx context.Context, sub ds.SubscriptionResp
 			Date:           listing.Date,
 			IsNeedSend:     false,
 		}); err != nil {
-			return err
+			return errors.Wrap(err, "failed to scrape listings for subscription ID "+sub.ID)
 		}
 	}
 
@@ -223,7 +232,7 @@ func (s *Service) scrapeNewListings(ctx context.Context, sub ds.SubscriptionResp
 				Date:           listing.Date,
 				IsNeedSend:     isNeedSend, // it's important for send
 			}); err != nil {
-				return err
+				return errors.Wrap(err, "failed to upsert listings for subscription ID "+sub.ID)
 			}
 		}
 	}
@@ -234,12 +243,14 @@ func (s *Service) scrapeNewListings(ctx context.Context, sub ds.SubscriptionResp
 // scrape retrieves and processes car listings by parameters.
 func (s *Service) scrape(ctx context.Context, params map[string]string) ([]polovniauto.Listing, error) {
 	s.l.Info("scraping started")
+
 	listings, err := s.paAdapter.GetNewListings(ctx, params)
 	if err != nil {
-		return []polovniauto.Listing{}, err
+		return []polovniauto.Listing{}, errors.Wrap(err, "failed to get new listings")
 	}
 
 	s.l.Info("scraping completed")
+
 	return listings, nil
 }
 

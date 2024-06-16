@@ -3,6 +3,7 @@ package polovniauto
 import (
 	"bytes"
 	"context"
+	"errors"
 	"fmt"
 	"html"
 	"io"
@@ -24,8 +25,11 @@ type Client struct {
 	httpClient *http.Client
 }
 
+var ErrUnexpectedStatusCode = errors.New("unexpected status code")
+
 func NewClient(l *logger.Logger, cfg *Config) *Client {
 	baseURL, _ := url.Parse("https://www.polovniautomobili.com")
+
 	return &Client{
 		l:          l,
 		cfg:        cfg,
@@ -52,6 +56,7 @@ type Listing struct {
 // GetNewListings retrieves new car listings based on the provided parameters.
 func (c *Client) GetNewListings(ctx context.Context, params map[string]string) ([]Listing, error) {
 	var allListings []Listing
+
 	page := 1
 
 	for page != c.cfg.PageLimit {
@@ -87,6 +92,7 @@ func (c *Client) buildURL(params map[string]string) *url.URL {
 	u := c.baseURL.ResolveReference(rel)
 
 	q := u.Query()
+
 	for key, value := range params {
 		switch key {
 		case "model[]":
@@ -101,6 +107,7 @@ func (c *Client) buildURL(params map[string]string) *url.URL {
 			q.Add(key, value)
 		}
 	}
+
 	u.RawQuery = q.Encode()
 
 	return u
@@ -120,7 +127,7 @@ func (c *Client) fetchPage(ctx context.Context, u *url.URL) (string, error) {
 	defer resp.Body.Close()
 
 	if resp.StatusCode != http.StatusOK {
-		return "", fmt.Errorf("unexpected status code: %d", resp.StatusCode)
+		return "", fmt.Errorf("%w: %d", ErrUnexpectedStatusCode, resp.StatusCode)
 	}
 
 	bodyBytes, err := io.ReadAll(resp.Body)
@@ -140,6 +147,7 @@ func (c *Client) parseListings(bodyStr string) ([]Listing, error) {
 	}
 
 	var listings []Listing
+
 	doc.Find("article.classified").Each(func(_ int, s *goquery.Selection) {
 		id := strings.TrimSpace(s.AttrOr("data-classifiedid", "N/A"))
 		title := strings.TrimSpace(s.Find("a.ga-title").AttrOr("title", "N/A"))
@@ -154,6 +162,7 @@ func (c *Client) parseListings(bodyStr string) ([]Listing, error) {
 
 		// Parse date string to time.Time
 		var date time.Time
+
 		date, err = time.Parse("2006-01-02 15:04:05", dateStr)
 		if err != nil {
 			date = time.Time{} // Default to zero value if parsing fails
@@ -162,6 +171,7 @@ func (c *Client) parseListings(bodyStr string) ([]Listing, error) {
 		// Split year and body type
 		year := "N/A"
 		bodyType := "N/A"
+
 		if parts := strings.SplitN(yearAndBodyType, ".", 2); len(parts) == 2 { //nolint:nolintlint,mnd
 			year = strings.TrimSpace(parts[0])
 			bodyType = strings.TrimSpace(parts[1])

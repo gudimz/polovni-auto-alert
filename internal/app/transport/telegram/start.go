@@ -30,6 +30,7 @@ Just select the desired command or type it in the chat to get started.
 		FirstName: chat.FirstName,
 		LastName:  chat.LastName,
 	})
+
 	if err != nil {
 		text = "⚠️ An internal error occurred while starting. Please try again later."
 	}

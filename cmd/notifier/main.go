@@ -37,6 +37,7 @@ func run() {
 		logger.WithIsJSON(true))
 
 	dbCfg := db.NewConfig()
+
 	repo, err := db.NewRepo(ctx, l, dbCfg)
 	if err != nil {
 		l.Error("failed to initialize repository", logger.ErrAttr(err))
@@ -50,6 +51,7 @@ func run() {
 	}
 
 	tgCfg := tgCli.NewConfig()
+
 	bot, err := tgCli.NewBot(l, tgCfg)
 	if err != nil {
 		l.Error("failed to create bot", logger.ErrAttr(err))

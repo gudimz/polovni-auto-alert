@@ -25,7 +25,7 @@ func NewLogger(opts ...Option) *Logger {
 		opt(config)
 	}
 
-	options := &HandlerOptions{
+	options := &HandlerOptions{ //nolint:exhaustruct,nolintlint
 		AddSource: config.AddSource,
 		Level:     config.Level,
 	}

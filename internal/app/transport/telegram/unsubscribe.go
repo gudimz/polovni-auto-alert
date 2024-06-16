@@ -14,6 +14,7 @@ import (
 // handleUnsubscribe handles the /unsubscribe command, allowing the user to remove a subscription.
 func (h *BotHandler) handleUnsubscribe(ctx context.Context, chatID int64) error {
 	text := "⚠️ An internal error occurred while getting the subscription list. Please try again later."
+
 	subscriptions, err := h.svc.GetAllSubscriptionsByUserID(ctx, chatID)
 	if err != nil {
 		return h.sendMessage(chatID, text, handleNameListSubscriptions)
@@ -25,6 +26,7 @@ func (h *BotHandler) handleUnsubscribe(ctx context.Context, chatID int64) error 
 	}
 
 	var buttons []tgbotapi.InlineKeyboardButton
+
 	for _, sub := range subscriptions {
 		buttonText := strings.ReplaceAll(h.buildMessageWithSubscription(sub, false), ", \n", "\n")
 		// handleNameUnsubscribe name is used in the callback. TODO: need refactoring
@@ -54,6 +56,7 @@ func (h *BotHandler) handleUnsubscribe(ctx context.Context, chatID int64) error 
 func (h *BotHandler) handleUnsubscribeCallback(ctx context.Context, callbackQuery *tgbotapi.CallbackQuery) error {
 	text := "🟢️ You have been unsubscribed from this subscription.\n\n"
 	subscriptionID := callbackQuery.Data
+
 	if err := h.svc.RemoveSubscriptionByID(ctx, subscriptionID); err != nil {
 		text = "⚠️ An internal error occurred while unsubscribing. Please try again later."
 	}

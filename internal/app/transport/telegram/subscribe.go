@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
+	"github.com/pkg/errors"
 
 	"github.com/gudimz/polovni-auto-alert/internal/pkg/ds"
 	"github.com/gudimz/polovni-auto-alert/pkg/logger"
@@ -52,13 +53,14 @@ func (h *BotHandler) handleSubscribe(ctx context.Context, chatID int64) error {
 }
 
 func (h *BotHandler) startSubscription(ctx context.Context, chatID int64) error {
-	h.state[chatID] = &SubscribeState{
+	h.state[chatID] = &SubscribeState{ //nolint:exhaustruct,nolintlint
 		Step:            brandSelectionStep,
 		InProgress:      true,
 		SelectedModels:  []string{},
 		SelectedChassis: []string{},
 		SelectedRegions: []string{},
 	}
+
 	return h.sendBrandSelectionMessage(ctx, chatID)
 }
 
@@ -68,6 +70,7 @@ func (h *BotHandler) sendBrandSelectionMessage(ctx context.Context, chatID int64
 🚗 Please choose a car brand:
 
 You can cancel the process at any time by sending /cancel`
+
 	brands := make([]string, 0, len(h.svc.GetCarsList()))
 	for brand := range h.svc.GetCarsList() {
 		brands = append(brands, brand)
@@ -82,9 +85,10 @@ You can cancel the process at any time by sending /cancel`
 	_, err := h.tgBot.SendMessage(msg)
 	if err != nil {
 		h.l.Error("failed to send brand selection message", logger.ErrAttr(err))
+		return errors.Wrap(err, "failed to send brand selection message")
 	}
 
-	return err
+	return nil
 }
 
 // handleSelectBrand handles the brand selection step.
@@ -110,12 +114,14 @@ You can cancel the process at any time by sending /cancel`
 
 	msg := tgbotapi.NewMessage(chatID, text)
 	msg.ReplyMarkup = keyboard
+
 	_, err := h.tgBot.SendMessage(msg)
 	if err != nil {
 		h.l.Error("failed to send model selection message", logger.ErrAttr(err))
+		return errors.Wrap(err, "failed to send model selection message")
 	}
 
-	return err
+	return nil
 }
 
 // handleSelectModels handles the model selection step.
@@ -139,12 +145,14 @@ You can cancel the process at any time by sending /cancel`,
 
 	msg := tgbotapi.NewMessage(callbackQuery.Message.Chat.ID, text)
 	msg.ReplyMarkup = keyboard
+
 	_, err := h.tgBot.SendMessage(msg)
 	if err != nil {
 		h.l.Error("failed to send updated model selection message", logger.ErrAttr(err))
+		return errors.Wrap(err, "failed to send updated model selection message")
 	}
 
-	return err
+	return nil
 }
 
 // sendChassisSelectionMessage sends a message asking the user to select a car chassis.
@@ -163,9 +171,10 @@ You can cancel the process at any time by sending /cancel or skip this step by s
 	_, err := h.tgBot.SendMessage(msg)
 	if err != nil {
 		h.l.Error("failed to send chassis selection message", logger.ErrAttr(err))
+		return errors.Wrap(err, "failed to send chassis selection message")
 	}
 
-	return err
+	return nil
 }
 
 // handleSelectChassis handles the chassis selection step.
@@ -189,12 +198,14 @@ You can cancel the process at any time by sending /cancel or skip this step by s
 
 	msg := tgbotapi.NewMessage(callbackQuery.Message.Chat.ID, text)
 	msg.ReplyMarkup = keyboard
+
 	_, err := h.tgBot.SendMessage(msg)
 	if err != nil {
 		h.l.Error("failed to send updated chassis selection message", logger.ErrAttr(err))
+		return errors.Wrap(err, "failed to send updated chassis selection message")
 	}
 
-	return err
+	return nil
 }
 
 // sendRegionSelectionMessage sends a message asking the user to select regions.
@@ -213,9 +224,10 @@ You can cancel the process at any time by sending /cancel or skip this step by s
 	_, err := h.tgBot.SendMessage(msg)
 	if err != nil {
 		h.l.Error("failed to send region selection message", logger.ErrAttr(err))
+		return errors.Wrap(err, "failed to send region selection message")
 	}
 
-	return err
+	return nil
 }
 
 // handleSelectRegions handles the region selection step.
@@ -239,12 +251,14 @@ You can cancel the process at any time by sending /cancel or skip this step by s
 
 	msg := tgbotapi.NewMessage(callbackQuery.Message.Chat.ID, text)
 	msg.ReplyMarkup = keyboard
+
 	_, err := h.tgBot.SendMessage(msg)
 	if err != nil {
 		h.l.Error("failed to send updated region selection message", logger.ErrAttr(err))
+		return errors.Wrap(err, "failed to send updated region selection message")
 	}
 
-	return err
+	return nil
 }
 
 // sendPriceFromMessage sends a message asking the user to enter the minimum price.
@@ -255,11 +269,14 @@ func (h *BotHandler) sendPriceFromMessage(_ context.Context, chatID int64) error
 You can cancel the process at any time by sending /cancel.`
 
 	msg := tgbotapi.NewMessage(chatID, text)
+
 	_, err := h.tgBot.SendMessage(msg)
 	if err != nil {
 		h.l.Error("failed to send price from message", logger.ErrAttr(err))
+		return errors.New("failed to send price from message")
 	}
-	return err
+
+	return nil
 }
 
 // handlePriceFrom processes the user's input for the minimum price.
@@ -270,16 +287,19 @@ func (h *BotHandler) handlePriceFrom(ctx context.Context, message *tgbotapi.Mess
 	if _, err := strconv.Atoi(priceFrom); err != nil {
 		text := "⚠️ Invalid price. Please enter a valid number or type /skip to skip this step:"
 		msg := tgbotapi.NewMessage(message.Chat.ID, text)
+
 		_, err = h.tgBot.SendMessage(msg)
 		if err != nil {
 			h.l.Error("failed to send price from validation message", logger.ErrAttr(err))
+			return errors.Wrap(err, "failed to send price from validation message")
 		}
 
-		return err
+		return nil
 	}
 
 	state.PriceFrom = priceFrom
 	state.Step = priceToStep
+
 	return h.sendPriceToMessage(ctx, message.Chat.ID)
 }
 
@@ -291,11 +311,14 @@ func (h *BotHandler) sendPriceToMessage(_ context.Context, chatID int64) error {
 You can cancel the process at any time by sending /cancel.`
 
 	msg := tgbotapi.NewMessage(chatID, text)
+
 	_, err := h.tgBot.SendMessage(msg)
 	if err != nil {
 		h.l.Error("failed to send price to message", logger.ErrAttr(err))
+		return errors.New("failed to send price to message")
 	}
-	return err
+
+	return nil
 }
 
 // handlePriceTo processes the user's input for the maximum price.
@@ -306,15 +329,19 @@ func (h *BotHandler) handlePriceTo(ctx context.Context, message *tgbotapi.Messag
 	if _, err := strconv.Atoi(priceTo); err != nil {
 		text := "⚠️ Invalid price. Please enter a valid number or type /skip to skip this step:"
 		msg := tgbotapi.NewMessage(message.Chat.ID, text)
+
 		_, err = h.tgBot.SendMessage(msg)
 		if err != nil {
 			h.l.Error("failed to send price to validation message", logger.ErrAttr(err))
+			return errors.Wrap(err, "failed to send price to validation message")
 		}
-		return err
+
+		return nil
 	}
 
 	state.PriceTo = priceTo
 	state.Step = yearFromStep
+
 	return h.sendYearFromMessage(ctx, message.Chat.ID)
 }
 
@@ -327,10 +354,13 @@ You can cancel the process at any time by sending /cancel.`
 
 	msg := tgbotapi.NewMessage(chatID, text)
 	_, err := h.tgBot.SendMessage(msg)
+
 	if err != nil {
 		h.l.Error("failed to send year from message", logger.ErrAttr(err))
+		return errors.Wrap(err, "failed to send year from message")
 	}
-	return err
+
+	return nil
 }
 
 // handleYearFrom processes the user's input for the start year.
@@ -341,15 +371,19 @@ func (h *BotHandler) handleYearFrom(ctx context.Context, message *tgbotapi.Messa
 	if _, err := strconv.Atoi(yearFrom); err != nil {
 		text := "⚠️ Invalid year. Please enter a valid number or type /skip to skip this step:"
 		msg := tgbotapi.NewMessage(message.Chat.ID, text)
+
 		_, err = h.tgBot.SendMessage(msg)
 		if err != nil {
 			h.l.Error("failed to send year from validation message", logger.ErrAttr(err))
+			return errors.Wrap(err, "failed to send year from validation message")
 		}
-		return err
+
+		return nil
 	}
 
 	state.YearFrom = yearFrom
 	state.Step = yearToStep
+
 	return h.sendYearToMessage(ctx, message.Chat.ID)
 }
 
@@ -362,10 +396,13 @@ You can cancel the process at any time by sending /cancel.`
 
 	msg := tgbotapi.NewMessage(chatID, text)
 	_, err := h.tgBot.SendMessage(msg)
+
 	if err != nil {
 		h.l.Error("failed to send year to message", logger.ErrAttr(err))
+		return errors.Wrap(err, "failed to send year to message")
 	}
-	return err
+
+	return nil
 }
 
 // handleYearTo processes the user's input for the end year.
@@ -376,15 +413,19 @@ func (h *BotHandler) handleYearTo(ctx context.Context, message *tgbotapi.Message
 	if _, err := strconv.Atoi(yearTo); err != nil {
 		text := "⚠️ Invalid year. Please enter a valid number or type /skip to skip this step:"
 		msg := tgbotapi.NewMessage(message.Chat.ID, text)
+
 		_, err = h.tgBot.SendMessage(msg)
 		if err != nil {
 			h.l.Error("failed to send year to validation message", logger.ErrAttr(err))
+			return errors.Wrap(err, "failed to send year to validation message")
 		}
-		return err
+
+		return nil
 	}
 
 	state.YearTo = yearTo
 	state.Step = confirmSelectionStep
+
 	return h.sendConfirmationMessage(ctx, message.Chat.ID)
 }
 
@@ -436,7 +477,9 @@ func (h *BotHandler) handleDone(ctx context.Context, chatID int64) error {
 		return h.sendConfirmationMessage(ctx, chatID)
 	default:
 		h.l.Warn("unknown subscription step", logger.AnyAttr("step", state.Step))
+
 		text := "⚠️ An unknown error occurred. The subscription process has been cancelled. Please try again."
+
 		if err := h.sendMessage(chatID, text, handleNameDone); err != nil {
 			h.l.Error("failed to send cancellation message", logger.ErrAttr(err))
 		}
@@ -523,11 +566,13 @@ func (h *BotHandler) handleConfirm(ctx context.Context, chatID int64) error {
 	_, err := h.svc.CreateSubscription(ctx, subscription)
 	if err != nil {
 		text := "⚠️ An internal error occurred while saving your subscription. Please try again later."
+
 		return h.sendMessage(chatID, text, handleNameConfirm)
 	}
 
 	delete(h.state, chatID)
 
 	text := "✅ Your subscription has been saved successfully!"
+
 	return h.sendMessage(chatID, text, handleNameConfirm)
 }

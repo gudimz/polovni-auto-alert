@@ -81,6 +81,7 @@ func listingToDB(input ds.UpsertListingRequest) (psql.UpsertListingParams, error
 	if err != nil {
 		return psql.UpsertListingParams{}, err
 	}
+
 	return psql.UpsertListingParams{
 		ID:             input.ID,
 		SubscriptionID: subscriptionID,
@@ -103,6 +104,7 @@ func listingFromDB(input psql.Listing) (ds.ListingResponse, error) {
 	if err != nil {
 		return ds.ListingResponse{}, err
 	}
+
 	return ds.ListingResponse{
 		ID:             input.ID,
 		SubscriptionID: subscriptionID,
@@ -142,6 +144,8 @@ func notificationFromDB(input psql.Notification) (ds.NotificationResponse, error
 		ListingID: input.ListingID,
 		Status:    statusFromDB(input.Status),
 		Reason:    input.Reason,
+		CreatedAt: input.CreatedAt.Time,
+		UpdatedAt: input.UpdatedAt.Time,
 	}, nil
 }
 
@@ -169,10 +173,10 @@ func stringToPgUUID(id string) (pgtype.UUID, error) {
 // timeToPgTimestamp converts time.Time to pgtype.Timestamp.
 func timeToPgTimestamp(t time.Time) pgtype.Timestamp {
 	if t.IsZero() {
-		return pgtype.Timestamp{}
+		return pgtype.Timestamp{} //nolint:exhaustruct,nolintlint
 	}
 
-	return pgtype.Timestamp{Valid: true, Time: t}
+	return pgtype.Timestamp{Valid: true, Time: t} //nolint:exhaustruct,nolintlint
 }
 
 // statusToDB converts ds.NotificationStatus to psql.NullStatus.
