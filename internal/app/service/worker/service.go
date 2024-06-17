@@ -143,7 +143,7 @@ func (s *Service) sendListing(ctx context.Context, chatID int64, listing ds.List
 	👋 Hi, here's a new listing for your subscription.
 
 	📝 Title: %s
-	💰 Price: %s€
+	💰 Price: %s
 	🏎️ Engine Volume: %s
 	⚙️ Transmission: %s
 	🚗 Body Type: %s

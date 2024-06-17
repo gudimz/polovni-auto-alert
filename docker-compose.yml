@@ -10,18 +10,20 @@ services:
     command: /app/notifier
     restart: always
     environment:
-      - LOG_LEVEL=info
-      - TELEGRAM_API_TOKEN= # Your API token
-      - TELEGRAM_UPDATE_CONFIG_TIMEOUT=60
-      - TELEGRAM_DEBUG=false
-      - DB_HOST=db
-      - DB_PORT=5432
-      - DB_USER=postgres
-      - DB_PASSWORD=postgres
-      - DB_NAME=app_db
-      - DB_SSLMODE=disable
+      - LOG_LEVEL=${LOG_LEVEL}
+      - TELEGRAM_API_TOKEN=${TELEGRAM_API_TOKEN}
+      - TELEGRAM_UPDATE_CONFIG_TIMEOUT=${TELEGRAM_UPDATE_CONFIG_TIMEOUT}
+      - TELEGRAM_DEBUG=${TELEGRAM_DEBUG}
+      - DB_HOST=${DB_HOST}
+      - DB_PORT=${DB_PORT}
+      - DB_USER=${DB_USER}
+      - DB_PASSWORD=${DB_PASSWORD}
+      - DB_NAME=${DB_NAME}
+      - DB_SSLMODE=${DB_SSLMODE}
     depends_on:
       - db
+    networks:
+      - internal
 
   scraper:
     build:
@@ -32,17 +34,19 @@ services:
     command: /app/scraper
     restart: always
     environment:
-      - LOG_LEVEL=info
-      - SCRAPER_INTERVAL=40m
-      - PAGE_LIMIT=9999
-      - DB_HOST=db
-      - DB_PORT=5432
-      - DB_USER=postgres
-      - DB_PASSWORD=postgres
-      - DB_NAME=app_db
-      - DB_SSLMODE=disable
+      - LOG_LEVEL=${LOG_LEVEL}
+      - SCRAPER_INTERVAL=${SCRAPER_INTERVAL}
+      - PAGE_LIMIT=${PAGE_LIMIT}
+      - DB_HOST=${DB_HOST}
+      - DB_PORT=${DB_PORT}
+      - DB_USER=${DB_USER}
+      - DB_PASSWORD=${DB_PASSWORD}
+      - DB_NAME=${DB_NAME}
+      - DB_SSLMODE=${DB_SSLMODE}
     depends_on:
       - db
+    networks:
+      - internal
 
   worker:
     build:
@@ -53,19 +57,21 @@ services:
     command: /app/worker
     restart: always
     environment:
-      - LOG_LEVEL=info
-      - WORKER_NOTIFICATION_INTERVAL=60m
-      - TELEGRAM_API_TOKEN= # Your API token
-      - TELEGRAM_UPDATE_CONFIG_TIMEOUT=60
-      - TELEGRAM_DEBUG=false
-      - DB_HOST=db
-      - DB_PORT=5432
-      - DB_USER=postgres
-      - DB_PASSWORD=postgres
-      - DB_NAME=app_db
-      - DB_SSLMODE=disable
+      - LOG_LEVEL=${LOG_LEVEL}
+      - WORKER_NOTIFICATION_INTERVAL=${WORKER_NOTIFICATION_INTERVAL}
+      - TELEGRAM_API_TOKEN=${TELEGRAM_API_TOKEN}
+      - TELEGRAM_UPDATE_CONFIG_TIMEOUT=${TELEGRAM_UPDATE_CONFIG_TIMEOUT}
+      - TELEGRAM_DEBUG=${TELEGRAM_DEBUG}
+      - DB_HOST=${DB_HOST}
+      - DB_PORT=${DB_PORT}
+      - DB_USER=${DB_USER}
+      - DB_PASSWORD=${DB_PASSWORD}
+      - DB_NAME=${DB_NAME}
+      - DB_SSLMODE=${DB_SSLMODE}
     depends_on:
       - db
+    networks:
+      - internal
 
   db:
     image: postgres:15
@@ -73,11 +79,16 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data
     environment:
-      - POSTGRES_USER=postgres
-      - POSTGRES_PASSWORD=postgres
-      - POSTGRES_DB=app_db
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - POSTGRES_DB=${POSTGRES_DB}
+    networks:
+      - internal
     ports:
       - "5432:5432"
+networks:
+  internal:
+    driver: bridge
 
 volumes:
   postgres_data:
