@@ -19,11 +19,13 @@ func (s *ServiceTestSuite) TestService_ProcessListings() {
 	now := time.Now()
 	listingID := uuid.NewString()
 	subID := uuid.NewString()
+
 	type testCase struct {
 		mock      func(*testCase)
 		name      string
 		expectErr error
 	}
+
 	testCases := []testCase{
 		{
 			name: "success",
@@ -347,7 +349,9 @@ func (s *ServiceTestSuite) TestService_ProcessListings() {
 			tc.mock(&tc)
 
 			ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+
 			err := s.svc.ProcessListings(ctx)
+
 			switch {
 			case tc.expectErr != nil:
 				s.Error(err)
@@ -363,12 +367,14 @@ func (s *ServiceTestSuite) TestService_ProcessListings() {
 
 func (s *ServiceTestSuite) TestService_RemoveAllSubscriptionsByUserID() {
 	now := time.Now()
+
 	type testCase struct {
 		mock      func(*testCase)
 		name      string
 		userID    int64
 		expectErr error
 	}
+
 	testCases := []testCase{
 		{
 			name: "success",
@@ -515,10 +521,13 @@ func (s *ServiceTestSuite) TestService_RemoveAllSubscriptionsByUserID() {
 			expectErr: errCommon,
 		},
 	}
+
 	for _, tc := range testCases {
 		s.Run(tc.name, func() {
 			tc.mock(&tc)
+
 			err := s.svc.RemoveAllSubscriptionsByUserID(context.Background(), tc.userID)
+
 			switch {
 			case tc.expectErr != nil:
 				s.Error(err)

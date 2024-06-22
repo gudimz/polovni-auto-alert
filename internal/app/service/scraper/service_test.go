@@ -18,15 +18,15 @@ func (s *ServiceTestSuite) TestService_ScrapeAllListings() {
 	now := time.Now()
 	listingID := uuid.NewString()
 	subID := uuid.NewString()
-	type testCase struct {
+
+	testCases := []struct {
 		name      string
-		mock      func(*testCase)
+		mock      func()
 		expectErr error
-	}
-	testCases := []testCase{
+	}{
 		{
 			name: "success",
-			mock: func(tc *testCase) {
+			mock: func() {
 				s.mockRepo.EXPECT().GetAllSubscriptions(gomock.Any()).
 					Return([]ds.SubscriptionResponse{
 						{
@@ -74,7 +74,7 @@ func (s *ServiceTestSuite) TestService_ScrapeAllListings() {
 		},
 		{
 			name: "success no subscriptions find",
-			mock: func(tc *testCase) {
+			mock: func() {
 				s.mockRepo.EXPECT().GetAllSubscriptions(gomock.Any()).
 					Return([]ds.SubscriptionResponse{}, nil).
 					Times(1)
@@ -82,7 +82,7 @@ func (s *ServiceTestSuite) TestService_ScrapeAllListings() {
 		},
 		{
 			name: "success no listings find",
-			mock: func(tc *testCase) {
+			mock: func() {
 				s.mockRepo.EXPECT().GetAllSubscriptions(gomock.Any()).
 					Return([]ds.SubscriptionResponse{
 						{
@@ -112,7 +112,7 @@ func (s *ServiceTestSuite) TestService_ScrapeAllListings() {
 		},
 		{
 			name: "get all subscriptions failed: common error",
-			mock: func(tc *testCase) {
+			mock: func() {
 				s.mockRepo.EXPECT().GetAllSubscriptions(gomock.Any()).
 					Return([]ds.SubscriptionResponse{}, errCommon).
 					Times(1)
@@ -121,7 +121,7 @@ func (s *ServiceTestSuite) TestService_ScrapeAllListings() {
 		},
 		{
 			name: "get listings failed: common error",
-			mock: func(tc *testCase) {
+			mock: func() {
 				s.mockRepo.EXPECT().GetAllSubscriptions(gomock.Any()).
 					Return([]ds.SubscriptionResponse{
 						{
@@ -152,7 +152,7 @@ func (s *ServiceTestSuite) TestService_ScrapeAllListings() {
 		},
 		{
 			name: "failed to upsert listing to DB: common error",
-			mock: func(tc *testCase) {
+			mock: func() {
 				s.mockRepo.EXPECT().GetAllSubscriptions(gomock.Any()).
 					Return([]ds.SubscriptionResponse{
 						{
@@ -200,12 +200,15 @@ func (s *ServiceTestSuite) TestService_ScrapeAllListings() {
 			expectErr: errCommon,
 		},
 	}
+
 	for _, tc := range testCases {
 		s.Run(tc.name, func() {
-			tc.mock(&tc)
+			tc.mock()
 
 			ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+
 			err := s.svc.ScrapeAllListings(ctx)
+
 			switch {
 			case tc.expectErr != nil:
 				s.Error(err)
@@ -213,6 +216,7 @@ func (s *ServiceTestSuite) TestService_ScrapeAllListings() {
 			default:
 				s.NoError(err)
 			}
+
 			cancel()
 		})
 	}
@@ -223,15 +227,15 @@ func (s *ServiceTestSuite) TestService_ScrapeNewListings() {
 	listingIDExist := uuid.NewString()
 	listingIDNotExist := uuid.NewString()
 	subID := uuid.NewString()
-	type testCase struct {
-		mock      func(*testCase)
+
+	testCases := []struct {
 		name      string
+		mock      func()
 		expectErr error
-	}
-	testCases := []testCase{
+	}{
 		{
 			name: "success",
-			mock: func(tc *testCase) {
+			mock: func() {
 				s.mockRepo.EXPECT().GetAllSubscriptions(gomock.Any()).
 					Return([]ds.SubscriptionResponse{
 						{
@@ -299,7 +303,7 @@ func (s *ServiceTestSuite) TestService_ScrapeNewListings() {
 		},
 		{
 			name: "success no subscriptions find",
-			mock: func(tc *testCase) {
+			mock: func() {
 				s.mockRepo.EXPECT().GetAllSubscriptions(gomock.Any()).
 					Return([]ds.SubscriptionResponse{}, nil).
 					Times(1)
@@ -307,7 +311,7 @@ func (s *ServiceTestSuite) TestService_ScrapeNewListings() {
 		},
 		{
 			name: "success no listings find",
-			mock: func(tc *testCase) {
+			mock: func() {
 				s.mockRepo.EXPECT().GetAllSubscriptions(gomock.Any()).
 					Return([]ds.SubscriptionResponse{
 						{
@@ -339,7 +343,7 @@ func (s *ServiceTestSuite) TestService_ScrapeNewListings() {
 		},
 		{
 			name: "success: first time, no need send listings",
-			mock: func(tc *testCase) {
+			mock: func() {
 				s.mockRepo.EXPECT().GetAllSubscriptions(gomock.Any()).
 					Return([]ds.SubscriptionResponse{
 						{
@@ -391,7 +395,7 @@ func (s *ServiceTestSuite) TestService_ScrapeNewListings() {
 		},
 		{
 			name: "get all subscriptions failed: common error",
-			mock: func(tc *testCase) {
+			mock: func() {
 				s.mockRepo.EXPECT().GetAllSubscriptions(gomock.Any()).
 					Return([]ds.SubscriptionResponse{}, errCommon).
 					Times(1)
@@ -400,7 +404,7 @@ func (s *ServiceTestSuite) TestService_ScrapeNewListings() {
 		},
 		{
 			name: "get listings failed: common error",
-			mock: func(tc *testCase) {
+			mock: func() {
 				s.mockRepo.EXPECT().GetAllSubscriptions(gomock.Any()).
 					Return([]ds.SubscriptionResponse{
 						{
@@ -433,7 +437,7 @@ func (s *ServiceTestSuite) TestService_ScrapeNewListings() {
 		},
 		{
 			name: "upsert listings failed: common error",
-			mock: func(tc *testCase) {
+			mock: func() {
 				s.mockRepo.EXPECT().GetAllSubscriptions(gomock.Any()).
 					Return([]ds.SubscriptionResponse{
 						{
@@ -483,7 +487,7 @@ func (s *ServiceTestSuite) TestService_ScrapeNewListings() {
 		},
 		{
 			name: "upsert listings failed: common error",
-			mock: func(tc *testCase) {
+			mock: func() {
 				s.mockRepo.EXPECT().GetAllSubscriptions(gomock.Any()).
 					Return([]ds.SubscriptionResponse{
 						{
@@ -551,12 +555,15 @@ func (s *ServiceTestSuite) TestService_ScrapeNewListings() {
 			expectErr: errCommon,
 		},
 	}
+
 	for _, tc := range testCases {
 		s.Run(tc.name, func() {
-			tc.mock(&tc)
+			tc.mock()
 
 			ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+
 			err := s.svc.ScrapeNewListings(ctx)
+
 			switch {
 			case tc.expectErr != nil:
 				s.Error(err)
@@ -564,6 +571,7 @@ func (s *ServiceTestSuite) TestService_ScrapeNewListings() {
 			default:
 				s.NoError(err)
 			}
+
 			cancel()
 		})
 	}

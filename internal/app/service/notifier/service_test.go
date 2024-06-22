@@ -15,6 +15,7 @@ var errCommon = errors.New("common error")
 
 func (s *ServiceTestSuite) TestService_UpsertUser() {
 	now := time.Now()
+
 	type testCase struct {
 		name      string
 		mock      func(*testCase)
@@ -22,6 +23,7 @@ func (s *ServiceTestSuite) TestService_UpsertUser() {
 		want      ds.UserResponse
 		expectErr error
 	}
+
 	testCases := []testCase{
 		{
 			name: "success",
@@ -64,7 +66,9 @@ func (s *ServiceTestSuite) TestService_UpsertUser() {
 	for _, tc := range testCases {
 		s.Run(tc.name, func() {
 			tc.mock(&tc)
+
 			want, err := s.svc.UpsertUser(context.Background(), tc.user)
+
 			switch {
 			case tc.expectErr != nil:
 				s.Error(err)
@@ -79,6 +83,7 @@ func (s *ServiceTestSuite) TestService_UpsertUser() {
 
 func (s *ServiceTestSuite) TestService_CreateSubscription() {
 	now := time.Now()
+
 	type testCase struct {
 		mock         func(*testCase)
 		name         string
@@ -86,6 +91,7 @@ func (s *ServiceTestSuite) TestService_CreateSubscription() {
 		want         ds.SubscriptionResponse
 		expectErr    error
 	}
+
 	testCases := []testCase{
 		{
 			name: "success",
@@ -123,10 +129,13 @@ func (s *ServiceTestSuite) TestService_CreateSubscription() {
 			expectErr: errCommon,
 		},
 	}
+
 	for _, tc := range testCases {
 		s.Run(tc.name, func() {
 			tc.mock(&tc)
+
 			want, err := s.svc.CreateSubscription(context.Background(), tc.subscription)
+
 			switch {
 			case tc.expectErr != nil:
 				s.Error(err)
@@ -141,12 +150,14 @@ func (s *ServiceTestSuite) TestService_CreateSubscription() {
 
 func (s *ServiceTestSuite) TestService_RemoveAllSubscriptionsByUserID() {
 	now := time.Now()
+
 	type testCase struct {
 		mock      func(*testCase)
 		name      string
 		userID    int64
 		expectErr error
 	}
+
 	testCases := []testCase{
 		{
 			name: "success",
@@ -293,10 +304,13 @@ func (s *ServiceTestSuite) TestService_RemoveAllSubscriptionsByUserID() {
 			expectErr: errCommon,
 		},
 	}
+
 	for _, tc := range testCases {
 		s.Run(tc.name, func() {
 			tc.mock(&tc)
+
 			err := s.svc.RemoveAllSubscriptionsByUserID(context.Background(), tc.userID)
+
 			switch {
 			case tc.expectErr != nil:
 				s.Error(err)
@@ -311,6 +325,7 @@ func (s *ServiceTestSuite) TestService_RemoveAllSubscriptionsByUserID() {
 func (s *ServiceTestSuite) TestService_GetAllSubscriptionsByUserID() {
 	now := time.Now()
 	id := uuid.NewString()
+
 	type testCase struct {
 		mock      func(*testCase)
 		name      string
@@ -318,6 +333,7 @@ func (s *ServiceTestSuite) TestService_GetAllSubscriptionsByUserID() {
 		want      []ds.SubscriptionResponse
 		expectErr error
 	}
+
 	testCases := []testCase{
 		{
 			name: "success",
@@ -359,10 +375,13 @@ func (s *ServiceTestSuite) TestService_GetAllSubscriptionsByUserID() {
 			expectErr: errCommon,
 		},
 	}
+
 	for _, tc := range testCases {
 		s.Run(tc.name, func() {
 			tc.mock(&tc)
+
 			want, err := s.svc.GetAllSubscriptionsByUserID(context.Background(), tc.userID)
+
 			switch {
 			case tc.expectErr != nil:
 				s.Error(err)
@@ -377,12 +396,14 @@ func (s *ServiceTestSuite) TestService_GetAllSubscriptionsByUserID() {
 
 func (s *ServiceTestSuite) TestService_RemoveSubscriptionByID() {
 	id := uuid.NewString()
+
 	type testCase struct {
 		mock      func(*testCase)
 		name      string
 		id        string
 		expectErr error
 	}
+
 	testCases := []testCase{
 		{
 			name: "success",
@@ -423,7 +444,9 @@ func (s *ServiceTestSuite) TestService_RemoveSubscriptionByID() {
 	for _, tc := range testCases {
 		s.Run(tc.name, func() {
 			tc.mock(&tc)
+
 			err := s.svc.RemoveSubscriptionByID(context.Background(), tc.id)
+
 			switch {
 			case tc.expectErr != nil:
 				s.Error(err)

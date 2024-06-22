@@ -18,6 +18,7 @@ type ServiceTestSuite struct {
 
 func (s *ServiceTestSuite) SetupTest() {
 	var err error
+
 	s.ctrl = gomock.NewController(s.T())
 	s.mockRepo = NewMockRepository(s.ctrl)
 	lg := logger.NewLogger()

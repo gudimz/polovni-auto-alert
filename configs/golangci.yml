@@ -325,3 +325,4 @@ issues:
         - gosec
         - noctx
         - wrapcheck
+        - exhaustruct
