@@ -9,6 +9,7 @@ import (
 	"github.com/gudimz/polovni-auto-alert/pkg/telegram"
 )
 
+//go:generate mockgen -source=deps.go -destination=deps_mock.go -package=worker
 type (
 	Repository interface {
 		UpsertListing(ctx context.Context, listing ds.UpsertListingRequest) error

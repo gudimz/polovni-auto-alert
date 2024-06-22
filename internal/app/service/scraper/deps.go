@@ -7,6 +7,7 @@ import (
 	"github.com/gudimz/polovni-auto-alert/pkg/polovniauto"
 )
 
+//go:generate mockgen -source=deps.go -destination=deps_mock.go -package=scraper
 type (
 	PolovniAutoAdapter interface {
 		GetNewListings(ctx context.Context, params map[string]string) ([]polovniauto.Listing, error)
