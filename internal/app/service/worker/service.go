@@ -2,13 +2,14 @@ package worker
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"net/http"
 	"runtime/debug"
 	"time"
 
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
-	"github.com/pkg/errors"
+	pkgerrors "github.com/pkg/errors"
 
 	"github.com/gudimz/polovni-auto-alert/internal/pkg/ds"
 	"github.com/gudimz/polovni-auto-alert/pkg/logger"
@@ -21,6 +22,8 @@ type Service struct {
 	tgBot    TgBot
 	interval time.Duration
 }
+
+var errBotBlockedByUser = pkgerrors.New("bot is blocked by user")
 
 // NewService creates a new Worker Service instance.
 func NewService(l *logger.Logger, repo Repository, tgBot TgBot, interval time.Duration) *Service {
@@ -68,7 +71,7 @@ func (s *Service) Start(ctx context.Context) error {
 func (s *Service) ProcessListings(ctx context.Context) error {
 	listings, err := s.repo.GetListingsByIsNeedSend(ctx, true)
 	if err != nil {
-		return errors.Wrap(err, "failed to get listings")
+		return pkgerrors.Wrap(err, "failed to get listings")
 	}
 
 	for _, listing := range listings {
@@ -80,6 +83,8 @@ func (s *Service) ProcessListings(ctx context.Context) error {
 				logger.ErrAttr(err),
 				logger.StringAttr("subscription_id", listing.SubscriptionID),
 			)
+
+			continue
 		}
 
 		notification := ds.CreateNotificationRequest{
@@ -99,6 +104,10 @@ func (s *Service) ProcessListings(ctx context.Context) error {
 			notification.Reason = err.Error()
 		}
 
+		if errors.Is(err, errBotBlockedByUser) {
+			continue
+		}
+
 		_, err = s.repo.CreateNotification(ctx, notification)
 		if err != nil {
 			s.l.Error("failed to create notification",
@@ -106,6 +115,11 @@ func (s *Service) ProcessListings(ctx context.Context) error {
 				logger.Int64Attr("user_id", subscription.UserID),
 				logger.StringAttr("listing_id", listing.ID),
 			)
+		}
+
+		isNeedSend := false
+		if notification.Status == ds.StatusFailed {
+			isNeedSend = true
 		}
 
 		if err = s.repo.UpsertListing(ctx, ds.UpsertListingRequest{
@@ -120,7 +134,7 @@ func (s *Service) ProcessListings(ctx context.Context) error {
 			Location:       listing.Location,
 			Link:           listing.Link,
 			Date:           listing.Date,
-			IsNeedSend:     false,
+			IsNeedSend:     isNeedSend,
 		}); err != nil {
 			s.l.Error("failed to update listing",
 				logger.ErrAttr(err),
@@ -174,7 +188,11 @@ func (s *Service) sendListing(ctx context.Context, chatID int64, listing ds.List
 					logger.ErrAttr(err),
 					logger.Int64Attr("user_id", chatID),
 				)
+
+				return errors.Join(errBotBlockedByUser, err)
 			}
+
+			return errBotBlockedByUser
 		}
 
 		return err
@@ -187,7 +205,7 @@ func (s *Service) sendListing(ctx context.Context, chatID int64, listing ds.List
 func (s *Service) RemoveAllSubscriptionsByUserID(ctx context.Context, userID int64) error {
 	subscriptions, err := s.repo.GetSubscriptionsByUserID(ctx, userID)
 	if err != nil {
-		return errors.Wrap(err, "failed to get subscriptions by user id")
+		return pkgerrors.Wrap(err, "failed to get subscriptions by user id")
 	}
 
 	ids := make([]string, len(subscriptions))
@@ -196,15 +214,15 @@ func (s *Service) RemoveAllSubscriptionsByUserID(ctx context.Context, userID int
 	}
 
 	if err = s.repo.DeleteListingsBySubscriptionIDs(ctx, ids); err != nil {
-		return errors.Wrap(err, "failed to delete listings by subscription ids")
+		return pkgerrors.Wrap(err, "failed to delete listings by subscription ids")
 	}
 
 	if err = s.repo.DeleteSubscriptionsByUserID(ctx, userID); err != nil {
-		return errors.Wrap(err, "failed to delete subscriptions by user id")
+		return pkgerrors.Wrap(err, "failed to delete subscriptions by user id")
 	}
 
 	if err = s.repo.DeleteUserByID(ctx, userID); err != nil {
-		return errors.Wrap(err, "failed to delete user by id")
+		return pkgerrors.Wrap(err, "failed to delete user by id")
 	}
 
 	// TODO add transactions in future

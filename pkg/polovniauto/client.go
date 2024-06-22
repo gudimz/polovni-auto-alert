@@ -81,6 +81,8 @@ func (c *Client) GetNewListings(ctx context.Context, params map[string]string) (
 
 		allListings = append(allListings, listings...)
 		page++
+
+		time.Sleep(1 * time.Second) // captcha protection
 	}
 
 	return allListings, nil

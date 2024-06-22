@@ -6,6 +6,7 @@ import (
 	"github.com/gudimz/polovni-auto-alert/internal/pkg/ds"
 )
 
+//go:generate mockgen -source=deps.go -destination=deps_mock.go -package=notifier
 type (
 	Repository interface {
 		UpsertUser(ctx context.Context, request ds.UserRequest) (ds.UserResponse, error)

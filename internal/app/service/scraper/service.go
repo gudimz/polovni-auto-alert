@@ -117,6 +117,8 @@ func (s *Service) ScrapeNewListings(ctx context.Context) error {
 		}
 	}
 
+	s.l.Info("scraped new listings successfully")
+
 	return nil
 }
 
