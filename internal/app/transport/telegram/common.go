@@ -82,36 +82,50 @@ func createKeyboard(
 func (h *BotHandler) buildMessageWithSubscription(subscription ds.SubscriptionResponse, isIncludeLabel bool) string {
 	var sb strings.Builder
 
-	sb.WriteString(h.formatSubscriptionField(
-		subscription.Brand,
-		"🚗",
-		"Brand",
-		isIncludeLabel),
-	)
-	sb.WriteString(h.formatSubscriptionField(
-		strings.Join(subscription.Model, ", "),
-		"🚘",
-		"Models",
-		isIncludeLabel),
-	)
-	sb.WriteString(h.formatSubscriptionField(
-		fmt.Sprintf("%s€ - %s€", subscription.PriceFrom, subscription.PriceTo),
-		"💰",
-		"Price",
-		isIncludeLabel),
-	)
-	sb.WriteString(h.formatSubscriptionField(
-		fmt.Sprintf("%s - %s", subscription.YearFrom, subscription.YearTo),
-		"📅",
-		"Year",
-		isIncludeLabel),
-	)
-	sb.WriteString(h.formatSubscriptionField(
-		strings.Join(subscription.Region, ", "),
-		"📍",
-		"Regions",
-		isIncludeLabel),
-	)
+	if subscription.Brand != "" {
+		sb.WriteString(h.formatSubscriptionField(
+			subscription.Brand,
+			"🚗",
+			"Brand",
+			isIncludeLabel),
+		)
+	}
+
+	if len(subscription.Model) != 0 {
+		sb.WriteString(h.formatSubscriptionField(
+			strings.Join(subscription.Model, ", "),
+			"🚘",
+			"Models",
+			isIncludeLabel),
+		)
+	}
+
+	if subscription.PriceFrom != "" || subscription.PriceTo != "" {
+		sb.WriteString(h.formatSubscriptionField(
+			fmt.Sprintf("%s€ - %s€", subscription.PriceFrom, subscription.PriceTo),
+			"💰",
+			"Price",
+			isIncludeLabel),
+		)
+	}
+
+	if subscription.YearFrom != "" || subscription.YearTo != "" {
+		sb.WriteString(h.formatSubscriptionField(
+			fmt.Sprintf("%s - %s", subscription.YearFrom, subscription.YearTo),
+			"📅",
+			"Year",
+			isIncludeLabel),
+		)
+	}
+
+	if len(subscription.Region) != 0 {
+		sb.WriteString(h.formatSubscriptionField(
+			strings.Join(subscription.Region, ", "),
+			"📍",
+			"Regions",
+			isIncludeLabel),
+		)
+	}
 
 	sb.WriteString("\n")
 

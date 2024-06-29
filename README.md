@@ -24,6 +24,22 @@ Polovni Auto Alert is a Telegram bot specifically designed to help users stay up
 
 To configure the environment variables for the project, create a `.env` file in the root directory of the project. You can use the provided `.env.example` file as a template.
 
+### Adding a JavaScript Parser to a Website via Console
+To add a JavaScript parser to a website using the browser console, follow these steps:
+
+1. Open the website in your browser.
+2. Press F12 or Ctrl+Shift+I (or Cmd+Option+I on Mac) to open the Developer Tools.
+3. Navigate to the "Console" tab.
+4. Copy the code from one of the parser.js files located in your project directory:
+- internal/app/service/notifier/data/cars/parser.js
+- internal/app/service/notifier/data/chassis/parser.js
+- internal/app/service/notifier/data/regions/parser.js
+5. Paste the copied code into the console and press Enter.
+6. Copy the result from the console to the files:
+- internal/app/service/notifier/data/cars/cars.json
+- internal/app/service/notifier/data/chassis/chassis.json
+- internal/app/service/notifier/data/regions/regions.json
+
 ### Building and Running the Project
 Use the provided Makefile to build and run the project:
 

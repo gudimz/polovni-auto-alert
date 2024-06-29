@@ -29,7 +29,7 @@ function getChassisTypes() {
             chassisTypes[option.textContent.trim()] = option.value;
         }
     });
-    console.log('Final chassis types:', JSON.stringify(chassisTypes, null, 2));
+    console.log(JSON.stringify(chassisTypes, null, 2));
 }
 
 // Start the process

@@ -29,7 +29,7 @@ function getRegions() {
             regions[option.textContent.trim()] = option.value;
         }
     });
-    console.log('Final regions:', JSON.stringify(regions, null, 2));
+    console.log(JSON.stringify(regions, null, 2));
 }
 
 // Start the process
