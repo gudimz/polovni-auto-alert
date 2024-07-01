@@ -154,30 +154,32 @@ func (s *Service) ProcessListings(ctx context.Context) error {
 func (s *Service) sendListing(ctx context.Context, chatID int64, listing ds.ListingResponse) error {
 	text := fmt.Sprintf(`
 
-	👋 Hi, here's a new listing for your subscription.
+	%s
 
-	📝 Title: %s
-	💰 Price: %s
-	🏎️ Engine Volume: %s
-	⚙️ Transmission: %s
-	🚗 Body Type: %s
-	🧭 Mileage: %s
-	📍 Location: %s
-	📅 Date: %s
-	🌐 Link: %s
+	📝 *Title:* %s
+	💰 *Price:* %s
+	🏎️ *Engine Volume:* %s
+	⚙️ *Transmission:* %s
+	🚗 *Body Type:* %s
+	🧭 *Mileage:* %s
+	📍 *Location:* %s
+	📅 *Date:* %s
+	🌐 *Link:* [tap to link](%s)
 	`,
-		listing.Title,
-		listing.Price,
-		listing.EngineVolume,
-		listing.Transmission,
-		listing.BodyType,
-		listing.Mileage,
-		listing.Location,
-		listing.Date.Format(time.DateTime),
-		listing.Link,
+		tgbotapi.EscapeText(tgbotapi.ModeMarkdownV2, "👋 Hi, here's a new listing for your subscription."),
+		tgbotapi.EscapeText(tgbotapi.ModeMarkdownV2, listing.Title),
+		tgbotapi.EscapeText(tgbotapi.ModeMarkdownV2, listing.Price),
+		tgbotapi.EscapeText(tgbotapi.ModeMarkdownV2, listing.EngineVolume),
+		tgbotapi.EscapeText(tgbotapi.ModeMarkdownV2, listing.Transmission),
+		tgbotapi.EscapeText(tgbotapi.ModeMarkdownV2, listing.BodyType),
+		tgbotapi.EscapeText(tgbotapi.ModeMarkdownV2, listing.Mileage),
+		tgbotapi.EscapeText(tgbotapi.ModeMarkdownV2, listing.Location),
+		tgbotapi.EscapeText(tgbotapi.ModeMarkdownV2, listing.Date.Format(time.DateTime)),
+		tgbotapi.EscapeText(tgbotapi.ModeMarkdownV2, listing.Link),
 	)
 
 	msg := tgbotapi.NewMessage(chatID, text)
+	msg.ParseMode = tgbotapi.ModeMarkdownV2
 
 	_, err := s.tgBot.SendMessage(msg)
 	if err != nil {
