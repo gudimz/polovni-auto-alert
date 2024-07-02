@@ -17,6 +17,7 @@ import (
 type Config struct {
 	LogLevel        string        `envconfig:"LOG_LEVEL" default:"info"`
 	ScraperInterval time.Duration `envconfig:"SCRAPER_INTERVAL" default:"10m"`
+	Workers         int           `envconfig:"SCRAPER_WORKERS_COUNT" default:"5"`
 }
 
 func main() {
@@ -54,7 +55,7 @@ func run() {
 	paCliCfg := polovniauto.NewConfig()
 	paCli := polovniauto.NewClient(l, paCliCfg)
 
-	svc := scraper.NewService(l, repo, paCli, cfg.ScraperInterval)
+	svc := scraper.NewService(l, repo, paCli, cfg.ScraperInterval, cfg.Workers)
 
 	go func() {
 		if err = svc.Start(ctx); err != nil {

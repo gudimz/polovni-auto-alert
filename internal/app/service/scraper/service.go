@@ -18,15 +18,19 @@ type Service struct {
 	repo      Repository
 	paAdapter PolovniAutoAdapter
 	interval  time.Duration
+	workers   int
 }
 
 // NewService creates a new Scraper Service instance.
-func NewService(l *logger.Logger, repo Repository, paAdapter PolovniAutoAdapter, interval time.Duration) *Service {
+func NewService(
+	l *logger.Logger, repo Repository, paAdapter PolovniAutoAdapter, interval time.Duration, workers int,
+) *Service {
 	return &Service{
 		l:         l,
 		repo:      repo,
 		paAdapter: paAdapter,
 		interval:  interval,
+		workers:   workers,
 	}
 }
 
@@ -82,7 +86,6 @@ func (s *Service) ScrapeAllListings(ctx context.Context) error {
 	}
 
 	errCh := s.scrapeSubscriptions(ctx, subscriptions, s.scrapeAllListings)
-	close(errCh)
 
 	for err := range errCh {
 		if err != nil {
@@ -109,7 +112,6 @@ func (s *Service) ScrapeNewListings(ctx context.Context) error {
 	}
 
 	errCh := s.scrapeSubscriptions(ctx, subscriptions, s.scrapeNewListings)
-	close(errCh)
 
 	for err := range errCh {
 		if err != nil {
@@ -131,20 +133,35 @@ func (s *Service) scrapeSubscriptions(
 	var wg sync.WaitGroup
 
 	errCh := make(chan error, len(subscriptions))
+	tasks := make(chan ds.SubscriptionResponse, len(subscriptions))
 
-	for _, subscription := range subscriptions {
+	for i := 0; i < s.workers; i++ {
 		wg.Add(1)
 
-		go func(sub ds.SubscriptionResponse) {
+		go func() {
 			defer wg.Done()
 
-			if err := scrapeFunc(ctx, sub); err != nil {
-				errCh <- err
+			for sub := range tasks {
+				select {
+				case <-ctx.Done():
+					return
+				default:
+					if err := scrapeFunc(ctx, sub); err != nil {
+						errCh <- err
+					}
+				}
 			}
-		}(subscription)
+		}()
 	}
 
+	for _, sub := range subscriptions {
+		tasks <- sub
+	}
+
+	close(tasks)
+
 	wg.Wait()
+	close(errCh)
 
 	return errCh
 }

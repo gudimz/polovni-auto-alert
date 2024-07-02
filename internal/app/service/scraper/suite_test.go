@@ -23,7 +23,7 @@ func (s *ServiceTestSuite) SetupTest() {
 	lg := logger.NewLogger()
 	s.mockRepo = NewMockRepository(s.ctrl)
 	s.mockPpolovniAuto = NewMockPolovniAutoAdapter(s.ctrl)
-	s.svc = NewService(lg, s.mockRepo, s.mockPpolovniAuto, 10*time.Second)
+	s.svc = NewService(lg, s.mockRepo, s.mockPpolovniAuto, 10*time.Second, 5)
 }
 
 func (s *ServiceTestSuite) TearDownTest() {
