@@ -224,8 +224,8 @@ func (s *ServiceTestSuite) TestService_ScrapeAllListings() {
 
 func (s *ServiceTestSuite) TestService_ScrapeNewListings() {
 	now := time.Now()
-	listingIDExist := uuid.NewString()
-	listingIDNotExist := uuid.NewString()
+	listingIDExist := "1"
+	listingIDNotExist := "2"
 	subID := uuid.NewString()
 
 	testCases := []struct {
@@ -281,7 +281,8 @@ func (s *ServiceTestSuite) TestService_ScrapeNewListings() {
 				s.mockRepo.EXPECT().GetListingsBySubscriptionID(gomock.Any(), subID).
 					Return([]ds.ListingResponse{
 						{
-							ID:             listingIDExist,
+							ID:             uuid.NewString(),
+							ListingID:      listingIDExist,
 							SubscriptionID: subID,
 							Title:          "Best audi",
 							Price:          "2400€",
@@ -436,7 +437,7 @@ func (s *ServiceTestSuite) TestService_ScrapeNewListings() {
 			expectErr: errCommon,
 		},
 		{
-			name: "upsert listings failed: common error",
+			name: "upsert listings failed: get listings common error",
 			mock: func() {
 				s.mockRepo.EXPECT().GetAllSubscriptions(gomock.Any()).
 					Return([]ds.SubscriptionResponse{
@@ -533,7 +534,8 @@ func (s *ServiceTestSuite) TestService_ScrapeNewListings() {
 				s.mockRepo.EXPECT().GetListingsBySubscriptionID(gomock.Any(), subID).
 					Return([]ds.ListingResponse{
 						{
-							ID:             listingIDExist,
+							ID:             uuid.NewString(),
+							ListingID:      listingIDExist,
 							SubscriptionID: subID,
 							Title:          "Best audi",
 							Price:          "2400€",

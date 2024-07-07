@@ -89,7 +89,7 @@ func (s *Service) ProcessListings(ctx context.Context) error {
 
 		notification := ds.CreateNotificationRequest{
 			SubscriptionID: listing.SubscriptionID,
-			ListingID:      listing.ID,
+			ListingID:      listing.ListingID,
 			Status:         ds.StatusSent,
 			Reason:         "",
 		}
@@ -98,7 +98,7 @@ func (s *Service) ProcessListings(ctx context.Context) error {
 			s.l.Error("failed to send listing",
 				logger.ErrAttr(err),
 				logger.Int64Attr("user_id", subscription.UserID),
-				logger.StringAttr("listing_id", listing.ID),
+				logger.StringAttr("listing_id", listing.ListingID),
 			)
 
 			notification.Status = ds.StatusFailed
@@ -114,7 +114,7 @@ func (s *Service) ProcessListings(ctx context.Context) error {
 			s.l.Error("failed to create notification",
 				logger.ErrAttr(err),
 				logger.Int64Attr("user_id", subscription.UserID),
-				logger.StringAttr("listing_id", listing.ID),
+				logger.StringAttr("listing_id", listing.ListingID),
 			)
 		}
 
@@ -124,7 +124,7 @@ func (s *Service) ProcessListings(ctx context.Context) error {
 		}
 
 		if err = s.repo.UpsertListing(ctx, ds.UpsertListingRequest{
-			ListingID:      listing.ID,
+			ListingID:      listing.ListingID,
 			SubscriptionID: listing.SubscriptionID,
 			Title:          listing.Title,
 			Price:          listing.Price,
@@ -140,7 +140,7 @@ func (s *Service) ProcessListings(ctx context.Context) error {
 			s.l.Error("failed to update listing",
 				logger.ErrAttr(err),
 				logger.Int64Attr("user_id", subscription.UserID),
-				logger.StringAttr("listing_id", listing.ID),
+				logger.StringAttr("listing_id", listing.ListingID),
 				logger.StringAttr("subscription_id", listing.SubscriptionID),
 			)
 		}

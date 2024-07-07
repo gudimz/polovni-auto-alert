@@ -230,13 +230,13 @@ func (s *Service) scrapeNewListings(ctx context.Context, sub ds.SubscriptionResp
 		isNeedSend = false
 	}
 
-	existingIDSet := make(map[string]struct{}, len(existListings))
+	existingListingIDSet := make(map[string]struct{}, len(existListings))
 	for _, existListing := range existListings {
-		existingIDSet[existListing.ID] = struct{}{}
+		existingListingIDSet[existListing.ListingID] = struct{}{}
 	}
 
 	for _, listing := range listings {
-		if _, exists := existingIDSet[listing.ID]; !exists {
+		if _, exists := existingListingIDSet[listing.ID]; !exists {
 			if err = s.repo.UpsertListing(ctx, ds.UpsertListingRequest{
 				ListingID:      listing.ID,
 				SubscriptionID: sub.ID,

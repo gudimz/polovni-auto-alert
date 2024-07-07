@@ -33,7 +33,8 @@ func (s *ServiceTestSuite) TestService_ProcessListings() {
 				s.mockRepo.EXPECT().GetListingsByIsNeedSend(gomock.Any(), true).
 					Return([]ds.ListingResponse{
 						{
-							ID:             listingID,
+							ID:             uuid.NewString(),
+							ListingID:      listingID,
 							SubscriptionID: subID,
 							Title:          "Best bmw",
 							Price:          "2400€",
@@ -94,7 +95,8 @@ func (s *ServiceTestSuite) TestService_ProcessListings() {
 				s.mockRepo.EXPECT().GetListingsByIsNeedSend(gomock.Any(), true).
 					Return([]ds.ListingResponse{
 						{
-							ID:             listingID,
+							ID:             uuid.NewString(),
+							ListingID:      listingID,
 							SubscriptionID: subID,
 							Title:          "Best bmw",
 							Price:          "2400€",
@@ -114,7 +116,8 @@ func (s *ServiceTestSuite) TestService_ProcessListings() {
 				s.mockRepo.EXPECT().GetListingsByIsNeedSend(gomock.Any(), true).
 					Return([]ds.ListingResponse{
 						{
-							ID:             listingID,
+							ID:             uuid.NewString(),
+							ListingID:      listingID,
 							SubscriptionID: subID,
 							Title:          "Best bmw",
 							Price:          "2400€",
@@ -167,7 +170,8 @@ func (s *ServiceTestSuite) TestService_ProcessListings() {
 				s.mockRepo.EXPECT().GetListingsByIsNeedSend(gomock.Any(), true).
 					Return([]ds.ListingResponse{
 						{
-							ID:             listingID,
+							ID:             uuid.NewString(),
+							ListingID:      listingID,
 							SubscriptionID: subID,
 							Title:          "Best bmw",
 							Price:          "2400€",
@@ -220,7 +224,8 @@ func (s *ServiceTestSuite) TestService_ProcessListings() {
 				s.mockRepo.EXPECT().GetListingsByIsNeedSend(gomock.Any(), true).
 					Return([]ds.ListingResponse{
 						{
-							ID:             listingID,
+							ID:             uuid.NewString(),
+							ListingID:      listingID,
 							SubscriptionID: subID,
 							Title:          "Best bmw",
 							Price:          "2400€",
@@ -255,7 +260,8 @@ func (s *ServiceTestSuite) TestService_ProcessListings() {
 				s.mockRepo.EXPECT().GetListingsByIsNeedSend(gomock.Any(), true).
 					Return([]ds.ListingResponse{
 						{
-							ID:             listingID,
+							ID:             uuid.NewString(),
+							ListingID:      listingID,
 							SubscriptionID: subID,
 							Title:          "Best bmw",
 							Price:          "2400€",
@@ -301,7 +307,8 @@ func (s *ServiceTestSuite) TestService_ProcessListings() {
 				s.mockRepo.EXPECT().GetListingsByIsNeedSend(gomock.Any(), true).
 					Return([]ds.ListingResponse{
 						{
-							ID:             listingID,
+							ID:             uuid.NewString(),
+							ListingID:      listingID,
 							SubscriptionID: subID,
 							Title:          "Best bmw",
 							Price:          "2400€",
