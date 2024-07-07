@@ -47,7 +47,7 @@ type (
 	}
 
 	UpsertListingRequest struct {
-		ID             string    `json:"id"`
+		ListingID      string    `json:"listing_id"`
 		SubscriptionID string    `json:"subscription_id"`
 		Title          string    `json:"title"`
 		Price          string    `json:"price"`
@@ -63,6 +63,7 @@ type (
 
 	ListingResponse struct {
 		ID             string    `json:"id"`
+		ListingID      string    `json:"listing_id"`
 		SubscriptionID string    `json:"subscription_id"`
 		Title          string    `json:"title"`
 		Price          string    `json:"price"`

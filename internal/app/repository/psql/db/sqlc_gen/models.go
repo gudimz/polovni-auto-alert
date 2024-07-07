@@ -54,7 +54,8 @@ func (ns NullStatus) Value() (driver.Value, error) {
 }
 
 type Listing struct {
-	ID             string           `json:"id"`
+	ID             pgtype.UUID      `json:"id"`
+	ListingID      string           `json:"listing_id"`
 	SubscriptionID pgtype.UUID      `json:"subscription_id"`
 	Title          string           `json:"title"`
 	Price          string           `json:"price"`
@@ -71,12 +72,13 @@ type Listing struct {
 }
 
 type Notification struct {
-	ID        pgtype.UUID      `json:"id"`
-	ListingID string           `json:"listing_id"`
-	Status    Status           `json:"status"`
-	Reason    string           `json:"reason"`
-	CreatedAt pgtype.Timestamp `json:"created_at"`
-	UpdatedAt pgtype.Timestamp `json:"updated_at"`
+	ID             pgtype.UUID      `json:"id"`
+	SubscriptionID pgtype.UUID      `json:"subscription_id"`
+	ListingID      string           `json:"listing_id"`
+	Status         Status           `json:"status"`
+	Reason         string           `json:"reason"`
+	CreatedAt      pgtype.Timestamp `json:"created_at"`
+	UpdatedAt      pgtype.Timestamp `json:"updated_at"`
 }
 
 type Subscription struct {

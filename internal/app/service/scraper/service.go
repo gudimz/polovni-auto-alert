@@ -182,7 +182,7 @@ func (s *Service) scrapeAllListings(ctx context.Context, sub ds.SubscriptionResp
 
 	for _, listing := range listings {
 		if err = s.repo.UpsertListing(ctx, ds.UpsertListingRequest{
-			ID:             listing.ID,
+			ListingID:      listing.ID,
 			SubscriptionID: sub.ID,
 			Title:          listing.Title,
 			Price:          listing.Price,
@@ -238,7 +238,7 @@ func (s *Service) scrapeNewListings(ctx context.Context, sub ds.SubscriptionResp
 	for _, listing := range listings {
 		if _, exists := existingIDSet[listing.ID]; !exists {
 			if err = s.repo.UpsertListing(ctx, ds.UpsertListingRequest{
-				ID:             listing.ID,
+				ListingID:      listing.ID,
 				SubscriptionID: sub.ID,
 				Title:          listing.Title,
 				Price:          listing.Price,

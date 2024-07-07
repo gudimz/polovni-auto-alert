@@ -56,8 +56,9 @@ func (s *ServiceTestSuite) TestService_ProcessListings() {
 					Return(tgbotapi.Message{}, nil).
 					Times(1)
 				s.mockRepo.EXPECT().CreateNotification(gomock.Any(), ds.CreateNotificationRequest{
-					ListingID: listingID,
-					Status:    ds.StatusSent,
+					SubscriptionID: subID,
+					ListingID:      listingID,
+					Status:         ds.StatusSent,
 				}).Return(ds.NotificationResponse{
 					ID:        uuid.NewString(),
 					ListingID: listingID,
@@ -67,7 +68,7 @@ func (s *ServiceTestSuite) TestService_ProcessListings() {
 				}, nil).
 					Times(1)
 				s.mockRepo.EXPECT().UpsertListing(gomock.Any(), ds.UpsertListingRequest{
-					ID:             listingID,
+					ListingID:      listingID,
 					SubscriptionID: subID,
 					Title:          "Best bmw",
 					Price:          "2400€",
@@ -136,9 +137,10 @@ func (s *ServiceTestSuite) TestService_ProcessListings() {
 					Return(tgbotapi.Message{}, errCommon).
 					Times(1)
 				s.mockRepo.EXPECT().CreateNotification(gomock.Any(), ds.CreateNotificationRequest{
-					ListingID: listingID,
-					Status:    ds.StatusFailed,
-					Reason:    errCommon.Error(),
+					SubscriptionID: subID,
+					ListingID:      listingID,
+					Status:         ds.StatusFailed,
+					Reason:         errCommon.Error(),
 				}).Return(ds.NotificationResponse{
 					ID:        uuid.NewString(),
 					ListingID: listingID,
@@ -148,7 +150,7 @@ func (s *ServiceTestSuite) TestService_ProcessListings() {
 				}, nil).
 					Times(1)
 				s.mockRepo.EXPECT().UpsertListing(gomock.Any(), ds.UpsertListingRequest{
-					ID:             listingID,
+					ListingID:      listingID,
 					SubscriptionID: subID,
 					Title:          "Best bmw",
 					Price:          "2400€",
@@ -276,12 +278,13 @@ func (s *ServiceTestSuite) TestService_ProcessListings() {
 					Return(tgbotapi.Message{}, nil).
 					Times(1)
 				s.mockRepo.EXPECT().CreateNotification(gomock.Any(), ds.CreateNotificationRequest{
-					ListingID: listingID,
-					Status:    ds.StatusSent,
+					SubscriptionID: subID,
+					ListingID:      listingID,
+					Status:         ds.StatusSent,
 				}).Return(ds.NotificationResponse{}, errCommon).
 					Times(1)
 				s.mockRepo.EXPECT().UpsertListing(gomock.Any(), ds.UpsertListingRequest{
-					ID:             listingID,
+					ListingID:      listingID,
 					SubscriptionID: subID,
 					Title:          "Best bmw",
 					Price:          "2400€",
@@ -321,8 +324,9 @@ func (s *ServiceTestSuite) TestService_ProcessListings() {
 					Return(tgbotapi.Message{}, nil).
 					Times(1)
 				s.mockRepo.EXPECT().CreateNotification(gomock.Any(), ds.CreateNotificationRequest{
-					ListingID: listingID,
-					Status:    ds.StatusSent,
+					SubscriptionID: subID,
+					ListingID:      listingID,
+					Status:         ds.StatusSent,
 				}).Return(ds.NotificationResponse{
 					ID:        uuid.NewString(),
 					ListingID: listingID,
@@ -332,7 +336,7 @@ func (s *ServiceTestSuite) TestService_ProcessListings() {
 				}, nil).
 					Times(1)
 				s.mockRepo.EXPECT().UpsertListing(gomock.Any(), ds.UpsertListingRequest{
-					ID:             listingID,
+					ListingID:      listingID,
 					SubscriptionID: subID,
 					Title:          "Best bmw",
 					Price:          "2400€",
@@ -354,10 +358,10 @@ func (s *ServiceTestSuite) TestService_ProcessListings() {
 
 			switch {
 			case tc.expectErr != nil:
-				s.Error(err)
-				s.True(errors.Is(err, errCommon), "expected error: %v, got: %v", errCommon, err)
+				s.Require().Error(err)
+				s.Assert().True(errors.Is(err, errCommon), "expected error: %v, got: %v", errCommon, err)
 			default:
-				s.NoError(err)
+				s.Require().NoError(err)
 			}
 
 			cancel()
@@ -530,10 +534,10 @@ func (s *ServiceTestSuite) TestService_RemoveAllSubscriptionsByUserID() {
 
 			switch {
 			case tc.expectErr != nil:
-				s.Error(err)
-				s.True(errors.Is(err, errCommon), "expected error: %v, got: %v", errCommon, err)
+				s.Require().Error(err)
+				s.Assert().True(errors.Is(err, errCommon), "expected error: %v, got: %v", errCommon, err)
 			default:
-				s.NoError(err)
+				s.Require().NoError(err)
 			}
 		})
 	}

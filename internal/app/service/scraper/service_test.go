@@ -61,7 +61,7 @@ func (s *ServiceTestSuite) TestService_ScrapeAllListings() {
 					}, nil).
 					Times(1)
 				s.mockRepo.EXPECT().UpsertListing(gomock.Any(), ds.UpsertListingRequest{
-					ID:             listingID,
+					ListingID:      listingID,
 					SubscriptionID: subID,
 					Title:          "Best bmw",
 					Price:          "2000€",
@@ -187,7 +187,7 @@ func (s *ServiceTestSuite) TestService_ScrapeAllListings() {
 					}, nil).
 					Times(1)
 				s.mockRepo.EXPECT().UpsertListing(gomock.Any(), ds.UpsertListingRequest{
-					ID:             listingID,
+					ListingID:      listingID,
 					SubscriptionID: subID,
 					Title:          "Best bmw",
 					Price:          "2000€",
@@ -211,10 +211,10 @@ func (s *ServiceTestSuite) TestService_ScrapeAllListings() {
 
 			switch {
 			case tc.expectErr != nil:
-				s.Error(err)
-				s.True(errors.Is(err, errCommon), "expected error: %v, got: %v", errCommon, err)
+				s.Require().Error(err)
+				s.Assert().True(errors.Is(err, errCommon), "expected error: %v, got: %v", errCommon, err)
 			default:
-				s.NoError(err)
+				s.Require().NoError(err)
 			}
 
 			cancel()
@@ -290,7 +290,7 @@ func (s *ServiceTestSuite) TestService_ScrapeNewListings() {
 						},
 					}, nil)
 				s.mockRepo.EXPECT().UpsertListing(gomock.Any(), ds.UpsertListingRequest{
-					ID:             listingIDNotExist,
+					ListingID:      listingIDNotExist,
 					SubscriptionID: subID,
 					Title:          "Best bmw",
 					Price:          "2000€",
@@ -382,7 +382,7 @@ func (s *ServiceTestSuite) TestService_ScrapeNewListings() {
 				s.mockRepo.EXPECT().GetListingsBySubscriptionID(gomock.Any(), subID).
 					Return([]ds.ListingResponse{}, nil)
 				s.mockRepo.EXPECT().UpsertListing(gomock.Any(), ds.UpsertListingRequest{
-					ID:             listingIDNotExist,
+					ListingID:      listingIDNotExist,
 					SubscriptionID: subID,
 					Title:          "Best bmw in the world",
 					Price:          "2300€",
@@ -542,7 +542,7 @@ func (s *ServiceTestSuite) TestService_ScrapeNewListings() {
 						},
 					}, nil)
 				s.mockRepo.EXPECT().UpsertListing(gomock.Any(), ds.UpsertListingRequest{
-					ID:             listingIDNotExist,
+					ListingID:      listingIDNotExist,
 					SubscriptionID: subID,
 					Title:          "Best bmw",
 					Price:          "2000€",
@@ -566,10 +566,10 @@ func (s *ServiceTestSuite) TestService_ScrapeNewListings() {
 
 			switch {
 			case tc.expectErr != nil:
-				s.Error(err)
-				s.True(errors.Is(err, errCommon), "expected error: %v, got: %v", errCommon, err)
+				s.Require().Error(err)
+				s.Assert().True(errors.Is(err, errCommon), "expected error: %v, got: %v", errCommon, err)
 			default:
-				s.NoError(err)
+				s.Require().NoError(err)
 			}
 
 			cancel()

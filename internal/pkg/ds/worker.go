@@ -6,9 +6,10 @@ import (
 
 type (
 	CreateNotificationRequest struct {
-		ListingID string             `json:"listing_id"`
-		Status    NotificationStatus `json:"status"`
-		Reason    string             `json:"reason"`
+		SubscriptionID string             `json:"subscription_id"`
+		ListingID      string             `json:"listing_id"`
+		Status         NotificationStatus `json:"status"`
+		Reason         string             `json:"reason"`
 	}
 
 	NotificationResponse struct {

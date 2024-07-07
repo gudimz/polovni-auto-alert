@@ -223,7 +223,12 @@ func (r *Repository) GetListingsByIsNeedSend(ctx context.Context, isNeedSend boo
 func (r *Repository) CreateNotification(
 	ctx context.Context, notification ds.CreateNotificationRequest,
 ) (ds.NotificationResponse, error) {
-	row, err := r.queries.CreateNotification(ctx, notificationToDB(notification))
+	req, err := notificationToDB(notification)
+	if err != nil {
+		return ds.NotificationResponse{}, pkgerrors.Wrap(err, "failed to convert notification to DB")
+	}
+
+	row, err := r.queries.CreateNotification(ctx, req)
 	if err != nil {
 		return ds.NotificationResponse{}, pkgerrors.Wrap(err, "failed to create notification to DB")
 	}

@@ -83,7 +83,7 @@ func listingToDB(input ds.UpsertListingRequest) (psql.UpsertListingParams, error
 	}
 
 	return psql.UpsertListingParams{
-		ID:             input.ID,
+		ListingID:      input.ListingID,
 		SubscriptionID: subscriptionID,
 		Title:          input.Title,
 		Price:          input.Price,
@@ -100,13 +100,19 @@ func listingToDB(input ds.UpsertListingRequest) (psql.UpsertListingParams, error
 
 // listingFromDB converts a ds.UpsertListingRequest to psql.UpsertListingParams.
 func listingFromDB(input psql.Listing) (ds.ListingResponse, error) {
+	id, err := pgUUIDToString(input.ID)
+	if err != nil {
+		return ds.ListingResponse{}, err
+	}
+
 	subscriptionID, err := pgUUIDToString(input.SubscriptionID)
 	if err != nil {
 		return ds.ListingResponse{}, err
 	}
 
 	return ds.ListingResponse{
-		ID:             input.ID,
+		ID:             id,
+		ListingID:      input.ListingID,
 		SubscriptionID: subscriptionID,
 		Title:          input.Title,
 		Price:          input.Price,
@@ -124,12 +130,18 @@ func listingFromDB(input psql.Listing) (ds.ListingResponse, error) {
 }
 
 // notificationToDB converts a ds.CreateNotificationRequest to psql.CreateNotificationParams.
-func notificationToDB(input ds.CreateNotificationRequest) psql.CreateNotificationParams {
-	return psql.CreateNotificationParams{
-		ListingID: input.ListingID,
-		Status:    statusToDB(input.Status),
-		Reason:    input.Reason,
+func notificationToDB(input ds.CreateNotificationRequest) (psql.CreateNotificationParams, error) {
+	subscriptionID, err := stringToPgUUID(input.SubscriptionID)
+	if err != nil {
+		return psql.CreateNotificationParams{}, err
 	}
+
+	return psql.CreateNotificationParams{
+		SubscriptionID: subscriptionID,
+		ListingID:      input.ListingID,
+		Status:         statusToDB(input.Status),
+		Reason:         input.Reason,
+	}, nil
 }
 
 // notificationFromDB converts a psql.Notification to ds.NotificationResponse.

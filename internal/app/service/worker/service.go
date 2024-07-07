@@ -88,9 +88,10 @@ func (s *Service) ProcessListings(ctx context.Context) error {
 		}
 
 		notification := ds.CreateNotificationRequest{
-			ListingID: listing.ID,
-			Status:    ds.StatusSent,
-			Reason:    "",
+			SubscriptionID: listing.SubscriptionID,
+			ListingID:      listing.ID,
+			Status:         ds.StatusSent,
+			Reason:         "",
 		}
 
 		if err = s.sendListing(ctx, subscription.UserID, listing); err != nil {
@@ -123,7 +124,7 @@ func (s *Service) ProcessListings(ctx context.Context) error {
 		}
 
 		if err = s.repo.UpsertListing(ctx, ds.UpsertListingRequest{
-			ID:             listing.ID,
+			ListingID:      listing.ID,
 			SubscriptionID: listing.SubscriptionID,
 			Title:          listing.Title,
 			Price:          listing.Price,
