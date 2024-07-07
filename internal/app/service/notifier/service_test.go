@@ -71,11 +71,11 @@ func (s *ServiceTestSuite) TestService_UpsertUser() {
 
 			switch {
 			case tc.expectErr != nil:
-				s.Error(err)
-				s.True(errors.Is(err, errCommon), "expected error: %v, got: %v", errCommon, err)
+				s.Require().Error(err)
+				s.Assert().True(errors.Is(err, errCommon), "expected error: %v, got: %v", errCommon, err)
 			default:
-				s.NoError(err)
-				s.Equal(tc.want, want)
+				s.Require().NoError(err)
+				s.Assert().Equal(tc.want, want)
 			}
 		})
 	}
@@ -138,11 +138,11 @@ func (s *ServiceTestSuite) TestService_CreateSubscription() {
 
 			switch {
 			case tc.expectErr != nil:
-				s.Error(err)
-				s.True(errors.Is(err, errCommon), "expected error: %v, got: %v", errCommon, err)
+				s.Require().Error(err)
+				s.Assert().True(errors.Is(err, errCommon), "expected error: %v, got: %v", errCommon, err)
 			default:
-				s.NoError(err)
-				s.Equal(tc.want, want)
+				s.Require().NoError(err)
+				s.Assert().Equal(tc.want, want)
 			}
 		})
 	}
@@ -313,10 +313,10 @@ func (s *ServiceTestSuite) TestService_RemoveAllSubscriptionsByUserID() {
 
 			switch {
 			case tc.expectErr != nil:
-				s.Error(err)
-				s.True(errors.Is(err, errCommon), "expected error: %v, got: %v", errCommon, err)
+				s.Require().Error(err)
+				s.Assert().True(errors.Is(err, errCommon), "expected error: %v, got: %v", errCommon, err)
 			default:
-				s.NoError(err)
+				s.Require().NoError(err)
 			}
 		})
 	}
@@ -384,11 +384,11 @@ func (s *ServiceTestSuite) TestService_GetAllSubscriptionsByUserID() {
 
 			switch {
 			case tc.expectErr != nil:
-				s.Error(err)
-				s.True(errors.Is(err, errCommon), "expected error: %v, got: %v", errCommon, err)
+				s.Require().Error(err)
+				s.Assert().True(errors.Is(err, errCommon), "expected error: %v, got: %v", errCommon, err)
 			default:
-				s.NoError(err)
-				s.Equal(tc.want, want)
+				s.Require().NoError(err)
+				s.Assert().Equal(tc.want, want)
 			}
 		})
 	}
@@ -449,10 +449,10 @@ func (s *ServiceTestSuite) TestService_RemoveSubscriptionByID() {
 
 			switch {
 			case tc.expectErr != nil:
-				s.Error(err)
-				s.True(errors.Is(err, errCommon), "expected error: %v, got: %v", errCommon, err)
+				s.Require().Error(err)
+				s.Assert().True(errors.Is(err, errCommon), "expected error: %v, got: %v", errCommon, err)
 			default:
-				s.NoError(err)
+				s.Require().NoError(err)
 			}
 		})
 	}
@@ -479,7 +479,7 @@ func (s *ServiceTestSuite) TestService_GetChassisList() {
 	s.svc.chassisList = want
 
 	got := s.svc.GetChassisList()
-	s.Equal(want, got)
+	s.Assert().Equal(want, got)
 }
 
 func (s *ServiceTestSuite) TestService_GetRegionsList() {
@@ -491,5 +491,5 @@ func (s *ServiceTestSuite) TestService_GetRegionsList() {
 	s.svc.regionsList = want
 
 	got := s.svc.GetRegionsList()
-	s.Equal(want, got)
+	s.Assert().Equal(want, got)
 }

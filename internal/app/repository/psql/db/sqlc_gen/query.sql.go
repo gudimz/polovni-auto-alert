@@ -13,25 +13,33 @@ import (
 
 const CreateNotification = `-- name: CreateNotification :one
 INSERT INTO notifications (listing_id,
+                           subscription_id,
                            status,
                            reason,
                            created_at,
                            updated_at)
-VALUES ($1, $2, $3, now(), now())
-RETURNING id, listing_id, status, reason, created_at, updated_at
+VALUES ($1, $2, $3, $4, now(), now())
+RETURNING id, subscription_id, listing_id, status, reason, created_at, updated_at
 `
 
 type CreateNotificationParams struct {
-	ListingID string `json:"listing_id"`
-	Status    Status `json:"status"`
-	Reason    string `json:"reason"`
+	ListingID      string      `json:"listing_id"`
+	SubscriptionID pgtype.UUID `json:"subscription_id"`
+	Status         Status      `json:"status"`
+	Reason         string      `json:"reason"`
 }
 
 func (q *Queries) CreateNotification(ctx context.Context, arg CreateNotificationParams) (Notification, error) {
-	row := q.db.QueryRow(ctx, CreateNotification, arg.ListingID, arg.Status, arg.Reason)
+	row := q.db.QueryRow(ctx, CreateNotification,
+		arg.ListingID,
+		arg.SubscriptionID,
+		arg.Status,
+		arg.Reason,
+	)
 	var i Notification
 	err := row.Scan(
 		&i.ID,
+		&i.SubscriptionID,
 		&i.ListingID,
 		&i.Status,
 		&i.Reason,
@@ -194,6 +202,7 @@ func (q *Queries) GetAllSubscriptions(ctx context.Context) ([]Subscription, erro
 
 const GetListingsByIsNeedSend = `-- name: GetListingsByIsNeedSend :many
 SELECT id,
+       listing_id,
        subscription_id,
        title,
        price,
@@ -222,6 +231,7 @@ func (q *Queries) GetListingsByIsNeedSend(ctx context.Context, isNeedSend bool) 
 		var i Listing
 		if err := rows.Scan(
 			&i.ID,
+			&i.ListingID,
 			&i.SubscriptionID,
 			&i.Title,
 			&i.Price,
@@ -248,6 +258,7 @@ func (q *Queries) GetListingsByIsNeedSend(ctx context.Context, isNeedSend bool) 
 
 const GetListingsBySubscriptionID = `-- name: GetListingsBySubscriptionID :many
 SELECT id,
+       listing_id,
        subscription_id,
        title,
        price,
@@ -276,6 +287,7 @@ func (q *Queries) GetListingsBySubscriptionID(ctx context.Context, subscriptionI
 		var i Listing
 		if err := rows.Scan(
 			&i.ID,
+			&i.ListingID,
 			&i.SubscriptionID,
 			&i.Title,
 			&i.Price,
@@ -388,26 +400,25 @@ func (q *Queries) GetSubscriptionsByUserID(ctx context.Context, userID int64) ([
 }
 
 const UpsertListing = `-- name: UpsertListing :exec
-INSERT INTO listings (id, subscription_id, title, price, engine_volume, transmission, body_type, mileage, location,
+INSERT INTO listings (listing_id, subscription_id, title, price, engine_volume, transmission, body_type, mileage, location,
                       link, date, is_need_send, created_at, updated_at)
 VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, now(), now())
-ON CONFLICT (id) DO UPDATE SET subscription_id = EXCLUDED.subscription_id,
-                               title           = EXCLUDED.title,
-                               price           = EXCLUDED.price,
-                               engine_volume   = EXCLUDED.engine_volume,
-                               transmission    = EXCLUDED.transmission,
-                               body_type       = EXCLUDED.body_type,
-                               mileage         = EXCLUDED.mileage,
-                               location        = EXCLUDED.location,
-                               link            = EXCLUDED.link,
-                               date            = EXCLUDED.date,
-                               is_need_send    = EXCLUDED.is_need_send,
-                               updated_at      = now()
-RETURNING id, subscription_id, title, price, engine_volume, transmission, body_type, mileage, location, link, date, is_need_send, created_at, updated_at
+ON CONFLICT (listing_id, subscription_id) DO UPDATE SET title         = EXCLUDED.title,
+                                                price         = EXCLUDED.price,
+                                                engine_volume = EXCLUDED.engine_volume,
+                                                transmission  = EXCLUDED.transmission,
+                                                body_type     = EXCLUDED.body_type,
+                                                mileage       = EXCLUDED.mileage,
+                                                location      = EXCLUDED.location,
+                                                link          = EXCLUDED.link,
+                                                date          = EXCLUDED.date,
+                                                is_need_send  = EXCLUDED.is_need_send,
+                                                updated_at    = now()
+RETURNING id, listing_id, subscription_id, title, price, engine_volume, transmission, body_type, mileage, location, link, date, is_need_send, created_at, updated_at
 `
 
 type UpsertListingParams struct {
-	ID             string           `json:"id"`
+	ListingID      string           `json:"listing_id"`
 	SubscriptionID pgtype.UUID      `json:"subscription_id"`
 	Title          string           `json:"title"`
 	Price          string           `json:"price"`
@@ -423,7 +434,7 @@ type UpsertListingParams struct {
 
 func (q *Queries) UpsertListing(ctx context.Context, arg UpsertListingParams) error {
 	_, err := q.db.Exec(ctx, UpsertListing,
-		arg.ID,
+		arg.ListingID,
 		arg.SubscriptionID,
 		arg.Title,
 		arg.Price,

@@ -34,7 +34,8 @@ CREATE INDEX IF NOT EXISTS idx_subscriptions_user_id ON subscriptions (user_id);
 -- Create listings table
 CREATE TABLE IF NOT EXISTS listings
 (
-    id              VARCHAR(32) PRIMARY KEY,
+    id              UUID      DEFAULT gen_random_uuid() PRIMARY KEY,
+    listing_id      VARCHAR(256)            NOT NULL,
     subscription_id UUID REFERENCES subscriptions (id),
     title           VARCHAR(256)            NOT NULL,
     price           VARCHAR(256)            NOT NULL,
@@ -47,7 +48,10 @@ CREATE TABLE IF NOT EXISTS listings
     date            TIMESTAMP               NOT NULL,
     is_need_send    BOOLEAN   DEFAULT FALSE NOT NULL,
     created_at      TIMESTAMP DEFAULT now() NOT NULL,
-    updated_at      TIMESTAMP DEFAULT now() NOT NULL
+    updated_at      TIMESTAMP DEFAULT now() NOT NULL,
+
+    CONSTRAINT listings_listing_id_subscription_id_unique UNIQUE (listing_id, subscription_id)
+
 );
 
 CREATE INDEX IF NOT EXISTS idx_listings_subscription_id ON listings (subscription_id);
@@ -57,12 +61,13 @@ CREATE INDEX IF NOT EXISTS idx_listings_is_need_send ON listings (is_need_send);
 -- Create notifications table
 CREATE TABLE IF NOT EXISTS notifications
 (
-    id         UUID      DEFAULT gen_random_uuid() PRIMARY KEY,
-    listing_id VARCHAR(256)            NOT NULL,
-    status     status                  NOT NULL,
-    reason     TEXT                    NOT NULL,
-    created_at TIMESTAMP DEFAULT now() NOT NULL,
-    updated_at TIMESTAMP DEFAULT now() NOT NULL
+    id              UUID      DEFAULT gen_random_uuid() PRIMARY KEY,
+    subscription_id UUID                    NOT NULL,
+    listing_id      VARCHAR(256)            NOT NULL,
+    status          status                  NOT NULL,
+    reason          TEXT                    NOT NULL,
+    created_at      TIMESTAMP DEFAULT now() NOT NULL,
+    updated_at      TIMESTAMP DEFAULT now() NOT NULL
 );
 
 CREATE INDEX IF NOT EXISTS idx_notifications_listing_id ON notifications (listing_id);
