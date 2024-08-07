@@ -10,6 +10,7 @@ import (
 
 	"github.com/gudimz/polovni-auto-alert/internal/app/repository/psql/db"
 	"github.com/gudimz/polovni-auto-alert/internal/app/service/scraper"
+	"github.com/gudimz/polovni-auto-alert/internal/pkg/data"
 	"github.com/gudimz/polovni-auto-alert/pkg/logger"
 	"github.com/gudimz/polovni-auto-alert/pkg/polovniauto"
 )
@@ -55,7 +56,12 @@ func run() {
 	paCliCfg := polovniauto.NewConfig()
 	paCli := polovniauto.NewClient(l, paCliCfg)
 
-	svc := scraper.NewService(l, repo, paCli, cfg.ScraperInterval, cfg.Workers)
+	dataLoader, err := data.NewLoader()
+	if err != nil {
+		l.Error("failed to create data loader", logger.ErrAttr(err))
+	}
+
+	svc := scraper.NewService(l, repo, paCli, cfg.ScraperInterval, cfg.Workers, dataLoader.GetChassisList())
 
 	go func() {
 		if err = svc.Start(ctx); err != nil {

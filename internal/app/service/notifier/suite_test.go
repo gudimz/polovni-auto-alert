@@ -22,7 +22,24 @@ func (s *ServiceTestSuite) SetupTest() {
 	s.ctrl = gomock.NewController(s.T())
 	s.mockRepo = NewMockRepository(s.ctrl)
 	lg := logger.NewLogger()
-	s.svc, err = NewService(lg, s.mockRepo)
+	s.svc = NewService(
+		lg,
+		s.mockRepo,
+		map[string][]string{
+			"bmw": {
+				"m3",
+				"m5",
+			},
+			"audi": {
+				"a5",
+			},
+		},
+		map[string]string{"Beograd": "Beograd"},
+		map[string]string{
+			"Limuzina": "277",
+			"Pickup":   "2635",
+		},
+	)
 	s.Require().NoError(err)
 }
 
