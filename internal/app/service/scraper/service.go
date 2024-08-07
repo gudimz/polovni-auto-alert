@@ -245,7 +245,7 @@ func (s *Service) scrapeNewListings(ctx context.Context, sub ds.SubscriptionResp
 
 	for _, listing := range listings {
 		price, exists := existingListingIDSet[listing.ID]
-		// check if the listing exists or if the price has changed
+		// check if the listing not exists or if the price has changed
 		if !exists || price != listing.Price {
 			if err = s.repo.UpsertListing(ctx, ds.UpsertListingRequest{
 				ListingID:      listing.ID,

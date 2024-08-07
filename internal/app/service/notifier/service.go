@@ -2,7 +2,6 @@ package notifier
 
 import (
 	"context"
-	_ "embed" // used for embedding JSON files
 
 	"github.com/pkg/errors"
 
