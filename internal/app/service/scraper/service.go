@@ -3,6 +3,7 @@ package scraper
 import (
 	"context"
 	"runtime/debug"
+	"strings"
 	"sync"
 	"time"
 
@@ -14,23 +15,30 @@ import (
 )
 
 type Service struct {
-	l         *logger.Logger
-	repo      Repository
-	paAdapter PolovniAutoAdapter
-	interval  time.Duration
-	workers   int
+	l           *logger.Logger
+	repo        Repository
+	paAdapter   PolovniAutoAdapter
+	interval    time.Duration
+	workers     int
+	chassisList map[string]string
 }
 
 // NewService creates a new Scraper Service instance.
 func NewService(
-	l *logger.Logger, repo Repository, paAdapter PolovniAutoAdapter, interval time.Duration, workers int,
+	l *logger.Logger,
+	repo Repository,
+	paAdapter PolovniAutoAdapter,
+	interval time.Duration,
+	workers int,
+	chassis map[string]string,
 ) *Service {
 	return &Service{
-		l:         l,
-		repo:      repo,
-		paAdapter: paAdapter,
-		interval:  interval,
-		workers:   workers,
+		l:           l,
+		repo:        repo,
+		paAdapter:   paAdapter,
+		interval:    interval,
+		workers:     workers,
+		chassisList: chassis,
 	}
 }
 
@@ -168,7 +176,7 @@ func (s *Service) scrapeSubscriptions(
 
 // scrapeAllListings scrapes all listings for a subscription.
 func (s *Service) scrapeAllListings(ctx context.Context, sub ds.SubscriptionResponse) error {
-	params := subscriptionToParams(sub)
+	params := s.subscriptionToParams(sub)
 
 	listings, err := s.scrape(ctx, params)
 	if err != nil {
@@ -204,7 +212,7 @@ func (s *Service) scrapeAllListings(ctx context.Context, sub ds.SubscriptionResp
 
 // scrapeNewListings scrapes new listings for the past 24 hours for a subscription.
 func (s *Service) scrapeNewListings(ctx context.Context, sub ds.SubscriptionResponse) error {
-	params := subscriptionToParams(sub)
+	params := s.subscriptionToParams(sub)
 	params["sort"] = "renewDate_desc"
 	params["date_limit"] = "1" // last 24h
 
@@ -230,13 +238,15 @@ func (s *Service) scrapeNewListings(ctx context.Context, sub ds.SubscriptionResp
 		isNeedSend = false
 	}
 
-	existingListingIDSet := make(map[string]struct{}, len(existListings))
+	existingListingIDSet := make(map[string]string, len(existListings))
 	for _, existListing := range existListings {
-		existingListingIDSet[existListing.ListingID] = struct{}{}
+		existingListingIDSet[existListing.ListingID] = existListing.Price
 	}
 
 	for _, listing := range listings {
-		if _, exists := existingListingIDSet[listing.ID]; !exists {
+		price, exists := existingListingIDSet[listing.ID]
+		// check if the listing exists or if the price has changed
+		if !exists || price != listing.Price {
 			if err = s.repo.UpsertListing(ctx, ds.UpsertListingRequest{
 				ListingID:      listing.ID,
 				SubscriptionID: sub.ID,
@@ -282,4 +292,38 @@ func (s *Service) recoverPanic() {
 			logger.StringAttr("stacktrace", string(debug.Stack())),
 		)
 	}
+}
+
+// subscriptionToParams converts a subscription to a map of query parameters.
+func (s *Service) subscriptionToParams(subscription ds.SubscriptionResponse) map[string]string {
+	params := map[string]string{
+		"brand":      subscription.Brand,
+		"price_from": subscription.PriceFrom,
+		"price_to":   subscription.PriceTo,
+		"year_from":  subscription.YearFrom,
+		"year_to":    subscription.YearTo,
+		"showOldNew": "all",
+	}
+
+	if len(subscription.Model) > 0 {
+		params["model[]"] = strings.Join(subscription.Model, ",")
+	}
+
+	if len(subscription.Region) > 0 {
+		params["region[]"] = strings.Join(subscription.Region, ",")
+	}
+
+	if len(subscription.Chassis) > 0 {
+		var mappedChassis []string
+
+		for _, chassisName := range subscription.Chassis {
+			if chassisID, exists := s.chassisList[chassisName]; exists {
+				mappedChassis = append(mappedChassis, chassisID)
+			}
+		}
+
+		params["chassis[]"] = strings.Join(mappedChassis, ",")
+	}
+
+	return params
 }

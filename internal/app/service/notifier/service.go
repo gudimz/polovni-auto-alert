@@ -2,8 +2,7 @@ package notifier
 
 import (
 	"context"
-	_ "embed"
-	"encoding/json"
+	_ "embed" // used for embedding JSON files
 
 	"github.com/pkg/errors"
 
@@ -21,30 +20,17 @@ type Service struct {
 	regionsList map[string]string
 }
 
-//go:embed data/cars/cars.json
-var carsJSON []byte
-
-//go:embed data/chassis/chassis.json
-var chassisJSON []byte
-
-//go:embed data/regions/regions.json
-var regionsJSON []byte
-
 // NewService creates a new instance of the notification service.
-func NewService(l *logger.Logger, repo Repository) (*Service, error) {
-	svc := &Service{
+func NewService(
+	l *logger.Logger, repo Repository, cars map[string][]string, chassis map[string]string, regions map[string]string,
+) *Service {
+	return &Service{
 		l:           l,
 		repo:        repo,
-		carsList:    make(map[string][]string),
-		chassisList: make(map[string]string),
-		regionsList: make(map[string]string),
+		carsList:    cars,
+		chassisList: chassis,
+		regionsList: regions,
 	}
-
-	if err := svc.loadData(); err != nil {
-		return nil, errors.Wrap(err, "failed to load data from json")
-	}
-
-	return svc, nil
 }
 
 // UpsertUser creates or updates a user.
@@ -142,23 +128,6 @@ func (s *Service) RemoveSubscriptionByID(ctx context.Context, id string) error {
 	}
 
 	// TODO add transactions in future
-
-	return nil
-}
-
-// loadData loads the data from embedded JSON files into the service maps.
-func (s *Service) loadData() error {
-	if err := json.Unmarshal(carsJSON, &s.carsList); err != nil {
-		return errors.Wrap(err, "failed to unmarshal cars json")
-	}
-
-	if err := json.Unmarshal(chassisJSON, &s.chassisList); err != nil {
-		return errors.Wrap(err, "failed to load chassis data")
-	}
-
-	if err := json.Unmarshal(regionsJSON, &s.regionsList); err != nil {
-		return errors.Wrap(err, "failed to load regions data")
-	}
 
 	return nil
 }

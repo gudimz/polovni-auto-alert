@@ -26,7 +26,9 @@ function getRegions() {
     const regions = {};
     document.querySelectorAll('#region option').forEach(option => {
         if (option.value) {
-            regions[option.textContent.trim()] = option.value;
+            if (!/^\d+$/.test(option.value)) {
+                regions[option.textContent.trim()] = option.value;
+            }
         }
     });
     console.log(JSON.stringify(regions, null, 2));
