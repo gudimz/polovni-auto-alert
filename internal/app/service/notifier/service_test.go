@@ -3,15 +3,56 @@ package notifier
 import (
 	"context"
 	"errors"
+	"testing"
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/stretchr/testify/suite"
 	"go.uber.org/mock/gomock"
 
 	"github.com/gudimz/polovni-auto-alert/internal/pkg/ds"
+	"github.com/gudimz/polovni-auto-alert/pkg/logger"
 )
 
 var errCommon = errors.New("common error")
+
+type ServiceTestSuite struct {
+	suite.Suite
+	ctrl     *gomock.Controller
+	mockRepo *MockRepository
+	svc      *Service
+}
+
+func (s *ServiceTestSuite) SetupTest() {
+	var err error
+
+	s.ctrl = gomock.NewController(s.T())
+	s.mockRepo = NewMockRepository(s.ctrl)
+	lg := logger.NewLogger()
+	s.svc = NewService(
+		lg,
+		s.mockRepo,
+		map[string][]string{
+			"bmw": {
+				"m3",
+				"m5",
+			},
+			"audi": {
+				"a5",
+			},
+		},
+		map[string]string{"Beograd": "Beograd"},
+		map[string]string{
+			"Limuzina": "277",
+			"Pickup":   "2635",
+		},
+	)
+	s.Require().NoError(err)
+}
+
+func (s *ServiceTestSuite) TearDownTest() {
+	s.ctrl.Finish()
+}
 
 func (s *ServiceTestSuite) TestService_UpsertUser() {
 	now := time.Now()
@@ -72,10 +113,10 @@ func (s *ServiceTestSuite) TestService_UpsertUser() {
 			switch {
 			case tc.expectErr != nil:
 				s.Require().Error(err)
-				s.Assert().True(errors.Is(err, errCommon), "expected error: %v, got: %v", errCommon, err)
+				s.Require().ErrorIsf(err, errCommon, "expected error: %v, got: %v", errCommon, err)
 			default:
 				s.Require().NoError(err)
-				s.Assert().Equal(tc.want, want)
+				s.Equal(tc.want, want)
 			}
 		})
 	}
@@ -139,10 +180,10 @@ func (s *ServiceTestSuite) TestService_CreateSubscription() {
 			switch {
 			case tc.expectErr != nil:
 				s.Require().Error(err)
-				s.Assert().True(errors.Is(err, errCommon), "expected error: %v, got: %v", errCommon, err)
+				s.Require().ErrorIsf(err, errCommon, "expected error: %v, got: %v", errCommon, err)
 			default:
 				s.Require().NoError(err)
-				s.Assert().Equal(tc.want, want)
+				s.Equal(tc.want, want)
 			}
 		})
 	}
@@ -314,9 +355,9 @@ func (s *ServiceTestSuite) TestService_RemoveAllSubscriptionsByUserID() {
 			switch {
 			case tc.expectErr != nil:
 				s.Require().Error(err)
-				s.Assert().True(errors.Is(err, errCommon), "expected error: %v, got: %v", errCommon, err)
+				s.Require().ErrorIsf(err, errCommon, "expected error: %v, got: %v", errCommon, err)
 			default:
-				s.Require().NoError(err)
+				s.NoError(err)
 			}
 		})
 	}
@@ -385,10 +426,10 @@ func (s *ServiceTestSuite) TestService_GetAllSubscriptionsByUserID() {
 			switch {
 			case tc.expectErr != nil:
 				s.Require().Error(err)
-				s.Assert().True(errors.Is(err, errCommon), "expected error: %v, got: %v", errCommon, err)
+				s.Require().ErrorIsf(err, errCommon, "expected error: %v, got: %v", errCommon, err)
 			default:
 				s.Require().NoError(err)
-				s.Assert().Equal(tc.want, want)
+				s.Equal(tc.want, want)
 			}
 		})
 	}
@@ -450,7 +491,7 @@ func (s *ServiceTestSuite) TestService_RemoveSubscriptionByID() {
 			switch {
 			case tc.expectErr != nil:
 				s.Require().Error(err)
-				s.Assert().True(errors.Is(err, errCommon), "expected error: %v, got: %v", errCommon, err)
+				s.Require().ErrorIsf(err, errCommon, "expected error: %v, got: %v", errCommon, err)
 			default:
 				s.Require().NoError(err)
 			}
@@ -479,7 +520,7 @@ func (s *ServiceTestSuite) TestService_GetChassisList() {
 	s.svc.chassisList = want
 
 	got := s.svc.GetChassisList()
-	s.Assert().Equal(want, got)
+	s.Equal(want, got)
 }
 
 func (s *ServiceTestSuite) TestService_GetRegionsList() {
@@ -491,5 +532,9 @@ func (s *ServiceTestSuite) TestService_GetRegionsList() {
 	s.svc.regionsList = want
 
 	got := s.svc.GetRegionsList()
-	s.Assert().Equal(want, got)
+	s.Equal(want, got)
+}
+
+func TestServiceTestSuite(t *testing.T) {
+	suite.Run(t, new(ServiceTestSuite))
 }

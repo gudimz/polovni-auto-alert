@@ -1,7 +1,7 @@
 PROJECT_DIR = $(CURDIR)
 PROJECT_BIN = $(PROJECT_DIR)/bin
 
-GOLANGCI_TAG = 1.59.0
+GOLANGCI_TAG = 1.61.0
 SQLC_PATH ?= configs/sqlc.yaml
 GOLANGCI_LINT_BIN = $(PROJECT_BIN)/golangci-lint
 
