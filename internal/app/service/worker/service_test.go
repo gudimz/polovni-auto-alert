@@ -2,18 +2,41 @@ package worker
 
 import (
 	"context"
-	"errors"
 	"net/http"
+	"testing"
 	"time"
 
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 	"github.com/google/uuid"
+	"github.com/pkg/errors"
+	"github.com/stretchr/testify/suite"
 	"go.uber.org/mock/gomock"
 
 	"github.com/gudimz/polovni-auto-alert/internal/pkg/ds"
+	"github.com/gudimz/polovni-auto-alert/pkg/logger"
 )
 
 var errCommon = errors.New("common error")
+
+type ServiceTestSuite struct {
+	suite.Suite
+	ctrl      *gomock.Controller
+	mockRepo  *MockRepository
+	mockTgBot *MockTgBot
+	svc       *Service
+}
+
+func (s *ServiceTestSuite) SetupTest() {
+	s.ctrl = gomock.NewController(s.T())
+	lg := logger.NewLogger()
+	s.mockRepo = NewMockRepository(s.ctrl)
+	s.mockTgBot = NewMockTgBot(s.ctrl)
+	s.svc = NewService(lg, s.mockRepo, s.mockTgBot, 10*time.Second)
+}
+
+func (s *ServiceTestSuite) TearDownTest() {
+	s.ctrl.Finish()
+}
 
 func (s *ServiceTestSuite) TestService_ProcessListings() {
 	now := time.Now()
@@ -366,7 +389,7 @@ func (s *ServiceTestSuite) TestService_ProcessListings() {
 			switch {
 			case tc.expectErr != nil:
 				s.Require().Error(err)
-				s.Assert().True(errors.Is(err, errCommon), "expected error: %v, got: %v", errCommon, err)
+				s.True(errors.Is(err, errCommon), "expected error: %v, got: %v", errCommon, err)
 			default:
 				s.Require().NoError(err)
 			}
@@ -542,10 +565,14 @@ func (s *ServiceTestSuite) TestService_RemoveAllSubscriptionsByUserID() {
 			switch {
 			case tc.expectErr != nil:
 				s.Require().Error(err)
-				s.Assert().True(errors.Is(err, errCommon), "expected error: %v, got: %v", errCommon, err)
+				s.True(errors.Is(err, errCommon), "expected error: %v, got: %v", errCommon, err)
 			default:
-				s.Require().NoError(err)
+				s.NoError(err)
 			}
 		})
 	}
+}
+
+func TestServiceTestSuite(t *testing.T) {
+	suite.Run(t, new(ServiceTestSuite))
 }
