@@ -48,10 +48,13 @@ func (s *Service) Start(ctx context.Context) error {
 
 	// To distinguish new listings from old ones,
 	// we save all listings in the database when we start the app
-	err := s.ScrapeAllListings(ctx)
-	if err != nil {
+	if err := s.ScrapeNewListings(ctx); err != nil {
 		return err
 	}
+
+	// if err := s.ScrapeAllListings(ctx); err != nil {
+	//	return err
+	//}
 
 	ticker := time.NewTicker(s.interval)
 
@@ -63,7 +66,7 @@ func (s *Service) Start(ctx context.Context) error {
 			case <-ticker.C:
 				s.l.Info("scraper ticker ticked")
 
-				if err = s.ScrapeNewListings(ctx); err != nil {
+				if err := s.ScrapeNewListings(ctx); err != nil {
 					s.l.Error("failed to scrape new listings", logger.ErrAttr(err))
 				}
 			case <-ctx.Done():
