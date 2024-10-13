@@ -53,10 +53,6 @@ func generateButtonsFromSlice(_ context.Context, items []string) []tgbotapi.Inli
 		buttons = append(buttons, tgbotapi.NewInlineKeyboardButtonData(item, item))
 	}
 
-	sort.Slice(buttons, func(i, j int) bool {
-		return buttons[i].Text < buttons[j].Text
-	})
-
 	return buttons
 }
 
@@ -73,6 +69,30 @@ func createKeyboard(
 		}
 
 		rows = append(rows, buttons[i:end])
+	}
+
+	return tgbotapi.NewInlineKeyboardMarkup(rows...)
+}
+
+// createKeyboardWithPagination creates an inline keyboard with pagination buttons.
+func createKeyboardWithPagination(
+	_ context.Context, buttonsPerRow int, buttons, paginationButtons []tgbotapi.InlineKeyboardButton,
+) tgbotapi.InlineKeyboardMarkup {
+	var rows [][]tgbotapi.InlineKeyboardButton
+
+	// Create rows with buttonsPerRow buttons
+	for i := 0; i < len(buttons); i += buttonsPerRow {
+		end := i + buttonsPerRow
+		if end > len(buttons) {
+			end = len(buttons)
+		}
+
+		rows = append(rows, buttons[i:end])
+	}
+
+	// Create a row with pagination buttons
+	if len(paginationButtons) > 0 {
+		rows = append(rows, paginationButtons)
 	}
 
 	return tgbotapi.NewInlineKeyboardMarkup(rows...)
