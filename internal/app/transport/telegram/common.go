@@ -34,7 +34,7 @@ func (h *BotHandler) sendUnknownCommandMessage(_ context.Context, chatID int64) 
 
 // generateButtons generates inline keyboard buttons from a map of items.
 func generateButtons(_ context.Context, items map[string]string) []tgbotapi.InlineKeyboardButton {
-	var buttons []tgbotapi.InlineKeyboardButton
+	buttons := make([]tgbotapi.InlineKeyboardButton, 0, len(items))
 	for item := range items {
 		buttons = append(buttons, tgbotapi.NewInlineKeyboardButtonData(item, item))
 	}
@@ -48,7 +48,7 @@ func generateButtons(_ context.Context, items map[string]string) []tgbotapi.Inli
 
 // generateButtonsFromSlice generates inline keyboard buttons from a slice of items.
 func generateButtonsFromSlice(_ context.Context, items []string) []tgbotapi.InlineKeyboardButton {
-	var buttons []tgbotapi.InlineKeyboardButton
+	buttons := make([]tgbotapi.InlineKeyboardButton, 0, len(items))
 	for _, item := range items {
 		buttons = append(buttons, tgbotapi.NewInlineKeyboardButtonData(item, item))
 	}
@@ -58,9 +58,16 @@ func generateButtonsFromSlice(_ context.Context, items []string) []tgbotapi.Inli
 
 // createKeyboard creates an inline keyboard with a given number of buttons per row.
 func createKeyboard(
-	_ context.Context, buttonsPerRow int, buttons []tgbotapi.InlineKeyboardButton, //nolint:unparam,nolintlint
+	_ context.Context,
+	buttonsPerRow int,
+	actionsButtons, buttons []tgbotapi.InlineKeyboardButton,
 ) tgbotapi.InlineKeyboardMarkup {
 	var rows [][]tgbotapi.InlineKeyboardButton
+
+	// Create a row with action buttons
+	if len(actionsButtons) > 0 {
+		rows = append(rows, actionsButtons)
+	}
 
 	for i := 0; i < len(buttons); i += buttonsPerRow {
 		end := i + buttonsPerRow
@@ -76,9 +83,14 @@ func createKeyboard(
 
 // createKeyboardWithPagination creates an inline keyboard with pagination buttons.
 func createKeyboardWithPagination(
-	_ context.Context, buttonsPerRow int, buttons, paginationButtons []tgbotapi.InlineKeyboardButton,
+	_ context.Context, buttonsPerRow int, actionsButtons, buttons, paginationButtons []tgbotapi.InlineKeyboardButton,
 ) tgbotapi.InlineKeyboardMarkup {
 	var rows [][]tgbotapi.InlineKeyboardButton
+
+	// Create a row with action buttons
+	if len(actionsButtons) > 0 {
+		rows = append(rows, actionsButtons)
+	}
 
 	// Create rows with buttonsPerRow buttons
 	for i := 0; i < len(buttons); i += buttonsPerRow {
