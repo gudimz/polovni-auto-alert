@@ -30,6 +30,15 @@ type (
 		YearTo          string
 		LastMessageID   int
 	}
+
+	MessageWithButtonsParams struct {
+		ChatID         int64
+		Text           string
+		ActionsButtons []tgbotapi.InlineKeyboardButton
+		Buttons        []tgbotapi.InlineKeyboardButton
+		ButtonsPerRow  int
+		IsNeedEditMsg  bool
+	}
 )
 
 const (
@@ -43,10 +52,12 @@ const (
 	yearToStep           subscribeStep = 8
 	confirmSelectionStep subscribeStep = 9
 
-	brandButtonsPerRow   = 3
-	modelButtonsPerRow   = 3
-	chassisButtonsPerRow = 3
-	regionButtonsPerRow  = 3
+	brandButtonsPerRow     = 3
+	modelButtonsPerRow     = 3
+	chassisButtonsPerRow   = 3
+	regionButtonsPerRow    = 3
+	sendPriceButtonsPerRow = 2
+	sendYearButtonsPerRow  = 2
 
 	maxModelsPerPage = 36
 	maxBrandsPerPage = 36
@@ -74,7 +85,7 @@ func (h *BotHandler) sendBrandSelectionMessage(ctx context.Context, chatID int64
 	text := `
 🚗 Please choose a car brand:
 
-You can cancel the process at any time by sending /cancel`
+You can cancel the process at any time by typing '🚫 cancel'.`
 
 	brands := make([]string, 0, len(h.svc.GetCarsList()))
 	for brand := range h.svc.GetCarsList() {
@@ -86,6 +97,10 @@ You can cancel the process at any time by sending /cancel`
 	})
 
 	var keyboard tgbotapi.InlineKeyboardMarkup
+
+	actionsButtons := []tgbotapi.InlineKeyboardButton{
+		tgbotapi.NewInlineKeyboardButtonData("🚫 Cancel", "/cancel"),
+	}
 
 	// Check if pagination is needed
 	if len(brands) > maxBrandsPerPage {
@@ -103,10 +118,10 @@ You can cancel the process at any time by sending /cancel`
 		// Add pagination buttons
 		paginationButtons := generatePaginationButtons(page, totalPages)
 
-		keyboard = createKeyboardWithPagination(ctx, modelButtonsPerRow, buttons, paginationButtons)
+		keyboard = createKeyboardWithPagination(ctx, modelButtonsPerRow, actionsButtons, buttons, paginationButtons)
 	} else {
 		buttons := generateButtonsFromSlice(ctx, brands)
-		keyboard = createKeyboard(ctx, brandButtonsPerRow, buttons)
+		keyboard = createKeyboard(ctx, brandButtonsPerRow, actionsButtons, buttons)
 	}
 
 	msg := tgbotapi.NewMessage(chatID, text)
@@ -142,9 +157,9 @@ func (h *BotHandler) handleSelectBrand(ctx context.Context, callbackQuery *tgbot
 	state.Step = modelSelectionStep
 
 	text := `
-🚗 Please choose car models (you can select multiple). When you're done, type /done:
+🚗 Please choose car models (you can select multiple). When you're done, type '✅ done':
 
-You can cancel the process at any time by sending /cancel`
+You can cancel the process at any time by sending '🚫 cancel'`
 
 	return h.sendModelSelectionMessage(ctx, callbackQuery.Message.Chat.ID, text, data, 0)
 }
@@ -158,6 +173,11 @@ func (h *BotHandler) sendModelSelectionMessage(ctx context.Context, chatID int64
 	sort.Slice(models, func(i, j int) bool {
 		return models[i] < models[j]
 	})
+
+	actionsButtons := []tgbotapi.InlineKeyboardButton{
+		tgbotapi.NewInlineKeyboardButtonData("🚫 Cancel", "/cancel"),
+		tgbotapi.NewInlineKeyboardButtonData("✅ Done", "/done"),
+	}
 
 	// Check if pagination is needed
 	if len(models) > maxModelsPerPage {
@@ -175,10 +195,10 @@ func (h *BotHandler) sendModelSelectionMessage(ctx context.Context, chatID int64
 		// Add pagination buttons
 		paginationButtons := generatePaginationButtons(page, totalPages)
 
-		keyboard = createKeyboardWithPagination(ctx, modelButtonsPerRow, buttons, paginationButtons)
+		keyboard = createKeyboardWithPagination(ctx, modelButtonsPerRow, actionsButtons, buttons, paginationButtons)
 	} else {
 		buttons := generateButtonsFromSlice(ctx, models)
-		keyboard = createKeyboard(ctx, modelButtonsPerRow, buttons)
+		keyboard = createKeyboard(ctx, modelButtonsPerRow, actionsButtons, buttons)
 	}
 
 	msg := tgbotapi.NewMessage(chatID, text)
@@ -230,8 +250,8 @@ func (h *BotHandler) handleSelectModels(ctx context.Context, callbackQuery *tgbo
 		text = fmt.Sprintf(`
 🚗 Selected models: %s
 
-Please choose more models or type /done if you are finished:
-You can cancel the process at any time by sending /cancel`,
+Please choose more models or type '✅ done' if you are finished:
+You can cancel the process at any time by typing '🚫 cancel'`,
 			strings.Join(state.SelectedModels, ", "))
 	} else { // Pagination
 		text = callbackQuery.Message.Text
@@ -248,13 +268,22 @@ You can cancel the process at any time by sending /cancel`,
 
 // sendChassisSelectionMessage sends a message asking the user to select a car chassis.
 func (h *BotHandler) sendChassisSelectionMessage(ctx context.Context, chatID int64, text string) error {
+	actionsButtons := []tgbotapi.InlineKeyboardButton{
+		tgbotapi.NewInlineKeyboardButtonData("🚫 Cancel", "/cancel"),
+		tgbotapi.NewInlineKeyboardButtonData("⏭️ Skip", "/skip"),
+		tgbotapi.NewInlineKeyboardButtonData("✅ Done", "/done"),
+	}
+
 	buttons := generateButtons(ctx, h.svc.GetChassisList())
-	keyboard := createKeyboard(ctx, chassisButtonsPerRow, buttons)
 
-	msg := tgbotapi.NewMessage(chatID, text)
-	msg.ReplyMarkup = keyboard
-
-	if err := h.sendSubscribeMessage(ctx, chatID, msg, true); err != nil {
+	if err := h.sendSubscribeMessageWithButtons(ctx, MessageWithButtonsParams{
+		ChatID:         chatID,
+		Text:           text,
+		Buttons:        buttons,
+		ActionsButtons: actionsButtons,
+		ButtonsPerRow:  chassisButtonsPerRow,
+		IsNeedEditMsg:  true,
+	}); err != nil {
 		h.l.Error("failed to send chassis selection message", logger.ErrAttr(err))
 		return errors.Wrap(err, "failed to send chassis selection message")
 	}
@@ -274,8 +303,8 @@ func (h *BotHandler) handleSelectChassis(ctx context.Context, callbackQuery *tgb
 	text := fmt.Sprintf(`
 🚙 Selected chassis: %s
 
-Please choose more chassis or type /done if you are finished:
-You can cancel the process at any time by sending /cancel or skip this step by sending /skip.`,
+Please choose more chassis or type '✅ done' if you are finished:
+You can cancel the process at any time by sending '🚫 cancel' or skip this step by typing '⏭️ skip'.`,
 		strings.Join(state.SelectedChassis, ", "))
 
 	return h.sendChassisSelectionMessage(ctx, callbackQuery.Message.Chat.ID, text)
@@ -283,13 +312,22 @@ You can cancel the process at any time by sending /cancel or skip this step by s
 
 // sendRegionSelectionMessage sends a message asking the user to select regions.
 func (h *BotHandler) sendRegionSelectionMessage(ctx context.Context, chatID int64, text string) error {
+	actionsButtons := []tgbotapi.InlineKeyboardButton{
+		tgbotapi.NewInlineKeyboardButtonData("🚫 Cancel", "/cancel"),
+		tgbotapi.NewInlineKeyboardButtonData("⏭️ Skip", "/skip"),
+		tgbotapi.NewInlineKeyboardButtonData("✅ Done", "/done"),
+	}
+
 	buttons := generateButtons(ctx, h.svc.GetRegionsList())
-	keyboard := createKeyboard(ctx, regionButtonsPerRow, buttons)
 
-	msg := tgbotapi.NewMessage(chatID, text)
-	msg.ReplyMarkup = keyboard
-
-	if err := h.sendSubscribeMessage(ctx, chatID, msg, false); err != nil {
+	if err := h.sendSubscribeMessageWithButtons(ctx, MessageWithButtonsParams{
+		ChatID:         chatID,
+		Text:           text,
+		Buttons:        buttons,
+		ActionsButtons: actionsButtons,
+		ButtonsPerRow:  chassisButtonsPerRow,
+		IsNeedEditMsg:  false,
+	}); err != nil {
 		h.l.Error("failed to send region selection message", logger.ErrAttr(err))
 		return errors.Wrap(err, "failed to send region selection message")
 	}
@@ -309,8 +347,8 @@ func (h *BotHandler) handleSelectRegions(ctx context.Context, callbackQuery *tgb
 	text := fmt.Sprintf(`
 📍 Selected regions: %s
 
-Please choose more regions or type /done if you are finished:
-You can cancel the process at any time by sending /cancel or skip this step by sending /skip.`,
+Please choose more regions or type '✅ done' if you are finished:
+You can cancel the process at any time by typing '🚫 cancel' or skip this step by sending '️️⏭️ skip'.`,
 		strings.Join(state.SelectedRegions, ", "))
 
 	return h.sendRegionSelectionMessage(ctx, callbackQuery.Message.Chat.ID, text)
@@ -319,13 +357,23 @@ You can cancel the process at any time by sending /cancel or skip this step by s
 // sendPriceFromMessage sends a message asking the user to enter the minimum price.
 func (h *BotHandler) sendPriceFromMessage(ctx context.Context, chatID int64) error {
 	text := `
-💰 Please enter the minimum price in € or type /skip to skip this step:
+💰 Please enter the minimum price in € or type '️⏭️ skip' to skip this step:
 
-You can cancel the process at any time by sending /cancel.`
+You can cancel the process at any time by sending '🚫 cancel'.`
 
-	msg := tgbotapi.NewMessage(chatID, text)
+	actionsButtons := []tgbotapi.InlineKeyboardButton{
+		tgbotapi.NewInlineKeyboardButtonData("🚫 Cancel", "/cancel"),
+		tgbotapi.NewInlineKeyboardButtonData("⏭️ Skip", "/skip"),
+	}
 
-	if err := h.sendSubscribeMessage(ctx, chatID, msg, false); err != nil {
+	if err := h.sendSubscribeMessageWithButtons(ctx, MessageWithButtonsParams{
+		ChatID:         chatID,
+		Text:           text,
+		Buttons:        nil,
+		ActionsButtons: actionsButtons,
+		ButtonsPerRow:  chassisButtonsPerRow,
+		IsNeedEditMsg:  false,
+	}); err != nil {
 		h.l.Error("failed to send price from message", logger.ErrAttr(err))
 		return errors.New("failed to send price from message")
 	}
@@ -335,36 +383,28 @@ You can cancel the process at any time by sending /cancel.`
 
 // handlePriceFrom processes the user's input for the minimum price.
 func (h *BotHandler) handlePriceFrom(ctx context.Context, message *tgbotapi.Message) error {
-	state := h.state[message.Chat.ID]
-	priceFrom := message.Text
-
-	if _, err := strconv.Atoi(priceFrom); err != nil {
-		text := "⚠️ Invalid price. Please enter a valid number or type /skip to skip this step:"
-		msg := tgbotapi.NewMessage(message.Chat.ID, text)
-
-		_, err = h.tgBot.SendMessage(msg)
-		if err != nil {
-			h.l.Error("failed to send price from validation message", logger.ErrAttr(err))
-			return errors.Wrap(err, "failed to send price from validation message")
-		}
-
-		return nil
+	errText := "⚠️ Invalid price from. Please enter a valid number or type '️⏭️ skip' to skip this step:"
+	if err := h.handleNumericInput(ctx, message, priceFromStep, priceToStep, errText, sendPriceButtonsPerRow); err != nil {
+		return err
 	}
-
-	state.PriceFrom = priceFrom
-	state.Step = priceToStep
 
 	return h.sendPriceToMessage(ctx, message.Chat.ID)
 }
 
 // sendPriceToMessage sends a message asking the user to enter the maximum price.
-func (h *BotHandler) sendPriceToMessage(_ context.Context, chatID int64) error {
+func (h *BotHandler) sendPriceToMessage(ctx context.Context, chatID int64) error {
 	text := `
-💰 Please enter the maximum price in € or type /skip to skip this step:
+💰 Please enter the maximum price in € or type '️⏭️ skip' to skip this step:
 
-You can cancel the process at any time by sending /cancel.`
+You can cancel the process at any time by sending '🚫 cancel'.`
+
+	actionsButtons := []tgbotapi.InlineKeyboardButton{
+		tgbotapi.NewInlineKeyboardButtonData("🚫 Cancel", "/cancel"),
+		tgbotapi.NewInlineKeyboardButtonData("⏭️ Skip", "/skip"),
+	}
 
 	msg := tgbotapi.NewMessage(chatID, text)
+	msg.ReplyMarkup = createKeyboard(ctx, sendPriceButtonsPerRow, actionsButtons, nil)
 
 	_, err := h.tgBot.SendMessage(msg)
 	if err != nil {
@@ -377,39 +417,30 @@ You can cancel the process at any time by sending /cancel.`
 
 // handlePriceTo processes the user's input for the maximum price.
 func (h *BotHandler) handlePriceTo(ctx context.Context, message *tgbotapi.Message) error {
-	state := h.state[message.Chat.ID]
-	priceTo := message.Text
-
-	if _, err := strconv.Atoi(priceTo); err != nil {
-		text := "⚠️ Invalid price. Please enter a valid number or type /skip to skip this step:"
-		msg := tgbotapi.NewMessage(message.Chat.ID, text)
-
-		_, err = h.tgBot.SendMessage(msg)
-		if err != nil {
-			h.l.Error("failed to send price to validation message", logger.ErrAttr(err))
-			return errors.Wrap(err, "failed to send price to validation message")
-		}
-
-		return nil
+	errText := "⚠️ Invalid price to. Please enter a valid number or type '️⏭️ skip' to skip this step:"
+	if err := h.handleNumericInput(ctx, message, priceToStep, yearFromStep, errText, sendPriceButtonsPerRow); err != nil {
+		return err
 	}
-
-	state.PriceTo = priceTo
-	state.Step = yearFromStep
 
 	return h.sendYearFromMessage(ctx, message.Chat.ID)
 }
 
 // sendYearFromMessage sends a message asking the user to enter the start year.
-func (h *BotHandler) sendYearFromMessage(_ context.Context, chatID int64) error {
+func (h *BotHandler) sendYearFromMessage(ctx context.Context, chatID int64) error {
 	text := `
-📅 Please enter the start year or type /skip to skip this step:
+📅 Please enter the start year or type '️⏭️ skip' to skip this step:
 
-You can cancel the process at any time by sending /cancel.`
+You can cancel the process at any time by sending '🚫 cancel'.`
+
+	actionsButtons := []tgbotapi.InlineKeyboardButton{
+		tgbotapi.NewInlineKeyboardButtonData("🚫 Cancel", "/cancel"),
+		tgbotapi.NewInlineKeyboardButtonData("⏭️ Skip", "/skip"),
+	}
 
 	msg := tgbotapi.NewMessage(chatID, text)
-	_, err := h.tgBot.SendMessage(msg)
+	msg.ReplyMarkup = createKeyboard(ctx, sendYearButtonsPerRow, actionsButtons, nil)
 
-	if err != nil {
+	if _, err := h.tgBot.SendMessage(msg); err != nil {
 		h.l.Error("failed to send year from message", logger.ErrAttr(err))
 		return errors.Wrap(err, "failed to send year from message")
 	}
@@ -419,39 +450,30 @@ You can cancel the process at any time by sending /cancel.`
 
 // handleYearFrom processes the user's input for the start year.
 func (h *BotHandler) handleYearFrom(ctx context.Context, message *tgbotapi.Message) error {
-	state := h.state[message.Chat.ID]
-	yearFrom := message.Text
-
-	if _, err := strconv.Atoi(yearFrom); err != nil {
-		text := "⚠️ Invalid year. Please enter a valid number or type /skip to skip this step:"
-		msg := tgbotapi.NewMessage(message.Chat.ID, text)
-
-		_, err = h.tgBot.SendMessage(msg)
-		if err != nil {
-			h.l.Error("failed to send year from validation message", logger.ErrAttr(err))
-			return errors.Wrap(err, "failed to send year from validation message")
-		}
-
-		return nil
+	errText := "⚠️ Invalid year from. Please enter a valid number or type '️⏭️ skip' to skip this step:"
+	if err := h.handleNumericInput(ctx, message, yearFromStep, yearToStep, errText, sendYearButtonsPerRow); err != nil {
+		return err
 	}
-
-	state.YearFrom = yearFrom
-	state.Step = yearToStep
 
 	return h.sendYearToMessage(ctx, message.Chat.ID)
 }
 
 // sendYearToMessage sends a message asking the user to enter the end year.
-func (h *BotHandler) sendYearToMessage(_ context.Context, chatID int64) error {
+func (h *BotHandler) sendYearToMessage(ctx context.Context, chatID int64) error {
 	text := `
-📅 Please enter the end year or type /skip to skip this step:
+📅 Please enter the end year or type '️⏭️ skip' to skip this step:
 
-You can cancel the process at any time by sending /cancel.`
+You can cancel the process at any time by sending '🚫 cancel'.`
+
+	actionsButtons := []tgbotapi.InlineKeyboardButton{
+		tgbotapi.NewInlineKeyboardButtonData("🚫 Cancel", "/cancel"),
+		tgbotapi.NewInlineKeyboardButtonData("⏭️ Skip", "/skip"),
+	}
 
 	msg := tgbotapi.NewMessage(chatID, text)
-	_, err := h.tgBot.SendMessage(msg)
+	msg.ReplyMarkup = createKeyboard(ctx, sendYearButtonsPerRow, actionsButtons, nil)
 
-	if err != nil {
+	if _, err := h.tgBot.SendMessage(msg); err != nil {
 		h.l.Error("failed to send year to message", logger.ErrAttr(err))
 		return errors.Wrap(err, "failed to send year to message")
 	}
@@ -461,26 +483,59 @@ You can cancel the process at any time by sending /cancel.`
 
 // handleYearTo processes the user's input for the end year.
 func (h *BotHandler) handleYearTo(ctx context.Context, message *tgbotapi.Message) error {
-	state := h.state[message.Chat.ID]
-	yearTo := message.Text
-
-	if _, err := strconv.Atoi(yearTo); err != nil {
-		text := "⚠️ Invalid year. Please enter a valid number or type /skip to skip this step:"
-		msg := tgbotapi.NewMessage(message.Chat.ID, text)
-
-		_, err = h.tgBot.SendMessage(msg)
-		if err != nil {
-			h.l.Error("failed to send year to validation message", logger.ErrAttr(err))
-			return errors.Wrap(err, "failed to send year to validation message")
-		}
-
-		return nil
+	errText := "⚠️ Invalid year to. Please enter a valid number or type '️⏭️ skip' to skip this step:"
+	if err := h.handleNumericInput(
+		ctx, message, yearToStep, confirmSelectionStep, errText, sendYearButtonsPerRow,
+	); err != nil {
+		return err
 	}
 
-	state.YearTo = yearTo
-	state.Step = confirmSelectionStep
-
 	return h.sendConfirmationMessage(ctx, message.Chat.ID)
+}
+
+// handleNumericInput handles the user's input for numeric values.
+func (h *BotHandler) handleNumericInput(
+	ctx context.Context,
+	message *tgbotapi.Message,
+	currStep subscribeStep,
+	nextStep subscribeStep,
+	errorMessage string,
+	buttonsPerRow int, //nolint:unparam,nolintlint
+) error {
+	state := h.state[message.Chat.ID]
+	input := message.Text
+
+	if _, atoiErr := strconv.Atoi(input); atoiErr != nil {
+		actionsButtons := []tgbotapi.InlineKeyboardButton{
+			tgbotapi.NewInlineKeyboardButtonData("🚫 Cancel", "/cancel"),
+			tgbotapi.NewInlineKeyboardButtonData("⏭️ Skip", "/skip"),
+		}
+
+		msg := tgbotapi.NewMessage(message.Chat.ID, errorMessage)
+		msg.ReplyMarkup = createKeyboard(ctx, buttonsPerRow, actionsButtons, nil)
+
+		if _, err := h.tgBot.SendMessage(msg); err != nil {
+			h.l.Error("failed to send validation message", logger.ErrAttr(err))
+			return errors.Wrap(err, "failed to send validation message")
+		}
+
+		return atoiErr
+	}
+
+	switch currStep { //nolint:exhaustive,nolintlint
+	case priceFromStep:
+		state.PriceFrom = input
+	case priceToStep:
+		state.PriceTo = input
+	case yearFromStep:
+		state.YearFrom = input
+	case yearToStep:
+		state.YearTo = input
+	}
+
+	state.Step = nextStep
+
+	return nil
 }
 
 // handleCancel handles the /cancel command, canceling the subscription process.
@@ -517,16 +572,16 @@ func (h *BotHandler) handleDone(ctx context.Context, chatID int64) error {
 		return nil
 	case chassisSelectionStep:
 		text := `
-🚙 Please choose chassis (you can select multiple). When you're done, type /done:
+🚙 Please choose chassis (you can select multiple). When you're done, type '️✅ done':
 
-You can cancel the process at any time by sending /cancel or skip this step by sending /skip.`
+You can cancel the process at any time by sending '🚫 cancel' or skip this step by sending '️⏭️ skip'.`
 
 		return h.sendChassisSelectionMessage(ctx, chatID, text)
 	case regionSelectionStep:
 		text := `
-📍 Please choose regions (you can select multiple). When you're done, type /done:
+📍 Please choose regions (you can select multiple). When you're done, type '️✅ done':
 
-You can cancel the process at any time by sending /cancel or skip this step by sending /skip.`
+You can cancel the process at any time by sending '🚫 cancel' or skip this step by sending '️⏭️ skip'.`
 
 		return h.sendRegionSelectionMessage(ctx, chatID, text)
 	case priceFromStep:
@@ -567,9 +622,9 @@ func (h *BotHandler) handleSkip(ctx context.Context, chatID int64) error {
 		// Clear the state for the previous step for the chassis and move on to the next step
 		state.SelectedChassis = state.SelectedChassis[:0]
 		text := `
-📍 Please choose regions (you can select multiple). When you're done, type /done:
+📍 Please choose regions (you can select multiple). When you're done, type '️✅ done':
 
-You can cancel the process at any time by sending /cancel or skip this step by sending /skip.`
+You can cancel the process at any time by sending '🚫 cancel' or skip this step by sending '️⏭️ skip'.`
 
 		return h.sendRegionSelectionMessage(ctx, chatID, text)
 	case priceFromStep:
@@ -592,7 +647,7 @@ You can cancel the process at any time by sending /cancel or skip this step by s
 }
 
 // sendConfirmationMessage sends a message asking the user to confirm their subscription.
-func (h *BotHandler) sendConfirmationMessage(_ context.Context, chatID int64) error {
+func (h *BotHandler) sendConfirmationMessage(ctx context.Context, chatID int64) error {
 	state := h.state[chatID]
 	text := fmt.Sprintf(`
 	🚗 Brand: %s
@@ -602,8 +657,7 @@ func (h *BotHandler) sendConfirmationMessage(_ context.Context, chatID int64) er
 	💰 Price: %s€ - %s€
 	📅 Year: %s - %s
 
-	Please type /confirm to save this subscription or /cancel to discard it.
-	`,
+	Please type '✅ confirm' to save this subscription or '🚫 cancel' to discard it.`,
 		state.SelectedBrand,
 		strings.Join(state.SelectedModels, ", "),
 		strings.Join(state.SelectedChassis, ", "),
@@ -612,7 +666,20 @@ func (h *BotHandler) sendConfirmationMessage(_ context.Context, chatID int64) er
 		state.YearFrom, state.YearTo,
 	)
 
-	return h.sendMessage(chatID, text, handleNameConfirm)
+	actionsButtons := []tgbotapi.InlineKeyboardButton{
+		tgbotapi.NewInlineKeyboardButtonData("🚫 Cancel", "/cancel"),
+		tgbotapi.NewInlineKeyboardButtonData("✅ Confirm'", "/confirm"),
+	}
+
+	msg := tgbotapi.NewMessage(chatID, text)
+	msg.ReplyMarkup = createKeyboard(ctx, sendYearButtonsPerRow, actionsButtons, nil)
+
+	if _, err := h.tgBot.SendMessage(msg); err != nil {
+		h.l.Error("failed to send confirm message", logger.ErrAttr(err))
+		return errors.Wrap(err, "failed to send confirm message")
+	}
+
+	return nil
 }
 
 // handleConfirm handles the /confirm command, saving the subscription to the database.
@@ -679,4 +746,12 @@ func (h *BotHandler) sendSubscribeMessage(
 	}
 
 	return nil
+}
+
+func (h *BotHandler) sendSubscribeMessageWithButtons(ctx context.Context, params MessageWithButtonsParams) error {
+	keyboard := createKeyboard(ctx, params.ButtonsPerRow, params.ActionsButtons, params.Buttons)
+	msg := tgbotapi.NewMessage(params.ChatID, params.Text)
+	msg.ReplyMarkup = keyboard
+
+	return h.sendSubscribeMessage(ctx, params.ChatID, msg, params.IsNeedEditMsg)
 }

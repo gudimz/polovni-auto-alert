@@ -129,41 +129,77 @@ func (h *BotHandler) handleCallbackQuery(ctx context.Context, callbackQuery *tgb
 		return
 	}
 
-	state, exists := h.state[callbackQuery.From.ID]
-	if !exists {
-		if err := h.sendUnknownCommandMessage(ctx, callbackQuery.Message.Chat.ID); err != nil {
-			h.l.Error("failed to send unknown command message", logger.ErrAttr(err))
+	if isHandled, err := h.handleActionButtons(ctx, callbackQuery); isHandled {
+		if err != nil {
+			h.l.Error("failed to handle action buttons", logger.ErrAttr(err))
 		}
 
 		return
 	}
 
-	var err error
+	if err := h.handleStateSteps(ctx, callbackQuery); err != nil {
+		h.l.Error("failed to handle state steps", logger.ErrAttr(err))
+	}
+}
+
+// handleActionButtons handles action buttons.
+func (h *BotHandler) handleActionButtons(ctx context.Context, callbackQuery *tgbotapi.CallbackQuery) (bool, error) {
+	switch callbackQuery.Data {
+	case handleNameSubscribe:
+		return true, h.handleSubscribe(ctx, callbackQuery.From.ID)
+	case handleNameUnsubscribe:
+		return true, h.handleUnsubscribe(ctx, callbackQuery.From.ID)
+	case handleNameListSubscriptions:
+		return true, h.handleListSubscriptions(ctx, callbackQuery.From.ID)
+	case handleNameStop:
+		return true, h.handleStop(ctx, callbackQuery.From.ID)
+	case handleNameDone:
+		return true, h.handleDone(ctx, callbackQuery.From.ID)
+	case handleNameCancel:
+		return true, h.handleCancel(ctx, callbackQuery.From.ID)
+	case handleNameSkip:
+		return true, h.handleSkip(ctx, callbackQuery.From.ID)
+	case handleNameConfirm:
+		return true, h.handleConfirm(ctx, callbackQuery.From.ID)
+	}
+
+	return false, nil
+}
+
+// handleStateSteps handles state steps.
+func (h *BotHandler) handleStateSteps(ctx context.Context, callbackQuery *tgbotapi.CallbackQuery) error {
+	state, exists := h.state[callbackQuery.From.ID]
+	if !exists {
+		if err := h.sendUnknownCommandMessage(ctx, callbackQuery.Message.Chat.ID); err != nil {
+			h.l.Error("failed to send unknown command message", logger.ErrAttr(err))
+			return err
+		}
+
+		return nil
+	}
 
 	switch state.Step { //nolint:exhaustive,nolintlint
 	case brandSelectionStep:
-		err = h.handleSelectBrand(ctx, callbackQuery)
+		return h.handleSelectBrand(ctx, callbackQuery)
 	case modelSelectionStep:
-		err = h.handleSelectModels(ctx, callbackQuery)
+		return h.handleSelectModels(ctx, callbackQuery)
 	case chassisSelectionStep:
-		err = h.handleSelectChassis(ctx, callbackQuery)
+		return h.handleSelectChassis(ctx, callbackQuery)
 	case regionSelectionStep:
-		err = h.handleSelectRegions(ctx, callbackQuery)
+		return h.handleSelectRegions(ctx, callbackQuery)
 	case priceFromStep:
-		err = h.handlePriceFrom(ctx, callbackQuery.Message)
+		return h.handlePriceFrom(ctx, callbackQuery.Message)
 	case priceToStep:
-		err = h.handlePriceTo(ctx, callbackQuery.Message)
+		return h.handlePriceTo(ctx, callbackQuery.Message)
 	case yearFromStep:
-		err = h.handleYearFrom(ctx, callbackQuery.Message)
+		return h.handleYearFrom(ctx, callbackQuery.Message)
 	case yearToStep:
-		err = h.handleYearTo(ctx, callbackQuery.Message)
+		return h.handleYearTo(ctx, callbackQuery.Message)
 	default:
 		h.l.Warn("unknown subscription step", logger.AnyAttr("step", state.Step))
 	}
 
-	if err != nil {
-		h.l.Error("failed to send message", logger.ErrAttr(err))
-	}
+	return nil
 }
 
 // recoverPanic recovers from a panic and logs the error.
