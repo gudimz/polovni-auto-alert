@@ -668,7 +668,7 @@ func (h *BotHandler) sendConfirmationMessage(ctx context.Context, chatID int64) 
 
 	actionsButtons := []tgbotapi.InlineKeyboardButton{
 		tgbotapi.NewInlineKeyboardButtonData("🚫 Cancel", "/cancel"),
-		tgbotapi.NewInlineKeyboardButtonData("✅ Confirm'", "/confirm"),
+		tgbotapi.NewInlineKeyboardButtonData("✅ Confirm", "/confirm"),
 	}
 
 	msg := tgbotapi.NewMessage(chatID, text)
