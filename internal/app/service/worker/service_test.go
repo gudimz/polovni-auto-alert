@@ -389,7 +389,7 @@ func (s *ServiceTestSuite) TestService_ProcessListings() {
 			switch {
 			case tc.expectErr != nil:
 				s.Require().Error(err)
-				s.True(errors.Is(err, errCommon), "expected error: %v, got: %v", errCommon, err)
+				s.Require().ErrorIs(err, tc.expectErr, "expected error: %v, got: %v", tc.expectErr, err)
 			default:
 				s.Require().NoError(err)
 			}
@@ -565,7 +565,7 @@ func (s *ServiceTestSuite) TestService_RemoveAllSubscriptionsByUserID() {
 			switch {
 			case tc.expectErr != nil:
 				s.Require().Error(err)
-				s.True(errors.Is(err, errCommon), "expected error: %v, got: %v", errCommon, err)
+				s.Require().ErrorIs(err, tc.expectErr, "expected error: %v, got: %v", tc.expectErr, err)
 			default:
 				s.NoError(err)
 			}

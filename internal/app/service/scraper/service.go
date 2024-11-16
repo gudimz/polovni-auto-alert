@@ -2,6 +2,7 @@ package scraper
 
 import (
 	"context"
+	"fmt"
 	"runtime/debug"
 	"strings"
 	"sync"
@@ -19,6 +20,7 @@ type Service struct {
 	repo        Repository
 	paAdapter   PolovniAutoAdapter
 	interval    time.Duration
+	startOffset time.Duration
 	workers     int
 	chassisList map[string]string
 }
@@ -29,6 +31,7 @@ func NewService(
 	repo Repository,
 	paAdapter PolovniAutoAdapter,
 	interval time.Duration,
+	startOffset time.Duration,
 	workers int,
 	chassis map[string]string,
 ) *Service {
@@ -37,6 +40,7 @@ func NewService(
 		repo:        repo,
 		paAdapter:   paAdapter,
 		interval:    interval,
+		startOffset: startOffset,
 		workers:     workers,
 		chassisList: chassis,
 	}
@@ -44,17 +48,15 @@ func NewService(
 
 // Start begins the scraping process.
 func (s *Service) Start(ctx context.Context) error {
-	s.l.Info("scraper interval set to", logger.DurationAttr("interval", s.interval))
+	s.l.Info(fmt.Sprintf("scraper service will start after: %v, interval: %v", s.startOffset, s.interval))
 
-	// To distinguish new listings from old ones,
+	// add a wait to not match the sending of notifications
+	time.Sleep(s.startOffset)
+	// to distinguish new listings from old ones,
 	// we save all listings in the database when we start the app
 	if err := s.ScrapeNewListings(ctx); err != nil {
 		return err
 	}
-
-	// if err := s.ScrapeAllListings(ctx); err != nil {
-	//	return err
-	//}
 
 	ticker := time.NewTicker(s.interval)
 

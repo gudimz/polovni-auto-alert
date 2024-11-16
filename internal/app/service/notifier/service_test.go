@@ -113,7 +113,7 @@ func (s *ServiceTestSuite) TestService_UpsertUser() {
 			switch {
 			case tc.expectErr != nil:
 				s.Require().Error(err)
-				s.Require().ErrorIsf(err, errCommon, "expected error: %v, got: %v", errCommon, err)
+				s.Require().ErrorIsf(err, tc.expectErr, "expected error: %v, got: %v", tc.expectErr, err)
 			default:
 				s.Require().NoError(err)
 				s.Equal(tc.want, want)
@@ -180,7 +180,7 @@ func (s *ServiceTestSuite) TestService_CreateSubscription() {
 			switch {
 			case tc.expectErr != nil:
 				s.Require().Error(err)
-				s.Require().ErrorIsf(err, errCommon, "expected error: %v, got: %v", errCommon, err)
+				s.Require().ErrorIsf(err, tc.expectErr, "expected error: %v, got: %v", tc.expectErr, err)
 			default:
 				s.Require().NoError(err)
 				s.Equal(tc.want, want)
@@ -355,7 +355,7 @@ func (s *ServiceTestSuite) TestService_RemoveAllSubscriptionsByUserID() {
 			switch {
 			case tc.expectErr != nil:
 				s.Require().Error(err)
-				s.Require().ErrorIsf(err, errCommon, "expected error: %v, got: %v", errCommon, err)
+				s.Require().ErrorIsf(err, tc.expectErr, "expected error: %v, got: %v", tc.expectErr, err)
 			default:
 				s.NoError(err)
 			}
@@ -426,7 +426,7 @@ func (s *ServiceTestSuite) TestService_GetAllSubscriptionsByUserID() {
 			switch {
 			case tc.expectErr != nil:
 				s.Require().Error(err)
-				s.Require().ErrorIsf(err, errCommon, "expected error: %v, got: %v", errCommon, err)
+				s.Require().ErrorIsf(err, tc.expectErr, "expected error: %v, got: %v", tc.expectErr, err)
 			default:
 				s.Require().NoError(err)
 				s.Equal(tc.want, want)
@@ -491,7 +491,7 @@ func (s *ServiceTestSuite) TestService_RemoveSubscriptionByID() {
 			switch {
 			case tc.expectErr != nil:
 				s.Require().Error(err)
-				s.Require().ErrorIsf(err, errCommon, "expected error: %v, got: %v", errCommon, err)
+				s.Require().ErrorIsf(err, tc.expectErr, "expected error: %v, got: %v", tc.expectErr, err)
 			default:
 				s.Require().NoError(err)
 			}
