@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"html"
 	"io"
+	"math/rand/v2"
 	"net/http"
 	"net/url"
 	"strconv"
@@ -26,6 +27,8 @@ type Client struct {
 }
 
 var ErrUnexpectedStatusCode = errors.New("unexpected status code")
+
+const maxRandomDelay = 3
 
 func NewClient(l *logger.Logger, cfg *Config) *Client {
 	baseURL, _ := url.Parse("https://www.polovniautomobili.com")
@@ -67,12 +70,12 @@ func (c *Client) GetNewListings(ctx context.Context, params map[string]string) (
 
 		bodyStr, err := c.fetchPage(ctx, uri)
 		if err != nil {
-			return nil, err
+			return []Listing{}, err
 		}
 
 		listings, err := c.parseListings(bodyStr)
 		if err != nil {
-			return nil, err
+			return []Listing{}, err
 		}
 
 		if len(listings) == 0 {
@@ -82,7 +85,9 @@ func (c *Client) GetNewListings(ctx context.Context, params map[string]string) (
 		allListings = append(allListings, listings...)
 		page++
 
-		time.Sleep(1 * time.Second) // captcha protection
+		// random delay to avoid being blocked
+		randomDelay := time.Duration(rand.IntN(maxRandomDelay)+1) * time.Second //nolint:gosec,nolintlint
+		time.Sleep(randomDelay)
 	}
 
 	return allListings, nil

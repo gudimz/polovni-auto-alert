@@ -16,9 +16,10 @@ import (
 )
 
 type Config struct {
-	LogLevel        string        `envconfig:"LOG_LEVEL" default:"info"`
-	ScraperInterval time.Duration `envconfig:"SCRAPER_INTERVAL" default:"10m"`
-	Workers         int           `envconfig:"SCRAPER_WORKERS_COUNT" default:"5"`
+	LogLevel           string        `envconfig:"LOG_LEVEL" default:"info"`
+	ScraperInterval    time.Duration `envconfig:"SCRAPER_INTERVAL" default:"10m"`
+	ScraperStartOffset time.Duration `envconfig:"SCRAPER_START_OFFSET" default:"0m"`
+	Workers            int           `envconfig:"SCRAPER_WORKERS_COUNT" default:"5"`
 }
 
 func main() {
@@ -61,7 +62,15 @@ func run() {
 		l.Error("failed to create data loader", logger.ErrAttr(err))
 	}
 
-	svc := scraper.NewService(l, repo, paCli, cfg.ScraperInterval, cfg.Workers, dataLoader.GetChassisList())
+	svc := scraper.NewService(
+		l,
+		repo,
+		paCli,
+		cfg.ScraperInterval,
+		cfg.ScraperStartOffset,
+		cfg.Workers,
+		dataLoader.GetChassisList(),
+	)
 
 	go func() {
 		if err = svc.Start(ctx); err != nil {

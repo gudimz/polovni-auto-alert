@@ -35,6 +35,7 @@ func (s *ServiceTestSuite) SetupTest() {
 		s.mockRepo,
 		s.mockPpolovniAuto,
 		10*time.Second,
+		0,
 		5,
 		map[string]string{
 			"Limuzina": "277",
@@ -244,7 +245,7 @@ func (s *ServiceTestSuite) TestService_ScrapeAllListings() {
 			switch {
 			case tc.expectErr != nil:
 				s.Require().Error(err)
-				s.True(errors.Is(err, errCommon), "expected error: %v, got: %v", errCommon, err)
+				s.Require().ErrorIs(err, tc.expectErr, "expected error: %v, got: %v", tc.expectErr, err)
 			default:
 				s.Require().NoError(err)
 			}
@@ -601,7 +602,7 @@ func (s *ServiceTestSuite) TestService_ScrapeNewListings() {
 			switch {
 			case tc.expectErr != nil:
 				s.Require().Error(err)
-				s.True(errors.Is(err, errCommon), "expected error: %v, got: %v", errCommon, err)
+				s.Require().ErrorIs(err, tc.expectErr, "expected error: %v, got: %v", tc.expectErr, err)
 			default:
 				s.Require().NoError(err)
 			}
