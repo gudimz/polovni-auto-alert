@@ -20,34 +20,36 @@ type ServiceTestSuite struct {
 	suite.Suite
 	ctrl     *gomock.Controller
 	mockRepo *MockRepository
+	mockPA   *MockPolovniAutoAdapter
 	svc      *Service
 }
 
 func (s *ServiceTestSuite) SetupTest() {
-	var err error
-
 	s.ctrl = gomock.NewController(s.T())
 	s.mockRepo = NewMockRepository(s.ctrl)
+	s.mockPA = NewMockPolovniAutoAdapter(s.ctrl)
+
 	lg := logger.NewLogger()
+
 	s.svc = NewService(
 		lg,
 		s.mockRepo,
-		map[string][]string{
-			"bmw": {
-				"m3",
-				"m5",
-			},
-			"audi": {
-				"a5",
-			},
-		},
-		map[string]string{"Beograd": "Beograd"},
-		map[string]string{
-			"Limuzina": "277",
-			"Pickup":   "2635",
-		},
+		s.mockPA,
 	)
-	s.Require().NoError(err)
+	s.svc.carsList.SetBatch(map[string][]string{
+		"bmw": {
+			"m3",
+			"m5",
+		},
+		"audi": {
+			"a5",
+		},
+	})
+	s.svc.carChassisList.SetBatch(map[string]string{
+		"Limuzina": "277",
+		"Pickup":   "2635",
+	})
+	s.svc.regionsList.SetBatch(map[string]string{"Beograd": "Beograd"})
 }
 
 func (s *ServiceTestSuite) TearDownTest() {
@@ -497,42 +499,6 @@ func (s *ServiceTestSuite) TestService_RemoveSubscriptionByID() {
 			}
 		})
 	}
-}
-
-func (s *ServiceTestSuite) TestService_GetCarsList() {
-	want := map[string][]string{
-		"bmw":  {"m3", "m6"},
-		"audi": {"a1", "a3"},
-	}
-
-	s.svc.carsList = want
-
-	got := s.svc.GetCarsList()
-	s.Equal(want, got)
-}
-
-func (s *ServiceTestSuite) TestService_GetChassisList() {
-	want := map[string]string{
-		"Pickup": "2635",
-		"Kupe":   "2633",
-	}
-
-	s.svc.chassisList = want
-
-	got := s.svc.GetChassisList()
-	s.Equal(want, got)
-}
-
-func (s *ServiceTestSuite) TestService_GetRegionsList() {
-	want := map[string]string{
-		"Beograd":   "Beograd",
-		"Vojvodina": "Vojvodina",
-	}
-
-	s.svc.regionsList = want
-
-	got := s.svc.GetRegionsList()
-	s.Equal(want, got)
 }
 
 func TestServiceTestSuite(t *testing.T) {
