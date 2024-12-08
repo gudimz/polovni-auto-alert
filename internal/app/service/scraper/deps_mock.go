@@ -41,6 +41,21 @@ func (m *MockPolovniAutoAdapter) EXPECT() *MockPolovniAutoAdapterMockRecorder {
 	return m.recorder
 }
 
+// GetCarChassisList mocks base method.
+func (m *MockPolovniAutoAdapter) GetCarChassisList(arg0 context.Context) (map[string]string, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetCarChassisList", arg0)
+	ret0, _ := ret[0].(map[string]string)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetCarChassisList indicates an expected call of GetCarChassisList.
+func (mr *MockPolovniAutoAdapterMockRecorder) GetCarChassisList(arg0 any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetCarChassisList", reflect.TypeOf((*MockPolovniAutoAdapter)(nil).GetCarChassisList), arg0)
+}
+
 // GetNewListings mocks base method.
 func (m *MockPolovniAutoAdapter) GetNewListings(ctx context.Context, params map[string]string) ([]polovniauto.Listing, error) {
 	m.ctrl.T.Helper()

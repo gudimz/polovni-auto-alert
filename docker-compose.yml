@@ -20,8 +20,11 @@ services:
       - DB_PASSWORD=${DB_PASSWORD}
       - DB_NAME=${DB_NAME}
       - DB_SSLMODE=${DB_SSLMODE}
+      - CHROME_WS_URL=${CHROME_WS_URL}
+      - CHROME_TIMEOUT=${CHROME_TIMEOUT}
     depends_on:
       - db
+      - chrome
     networks:
       - internal
 
@@ -43,8 +46,11 @@ services:
       - DB_PASSWORD=${DB_PASSWORD}
       - DB_NAME=${DB_NAME}
       - DB_SSLMODE=${DB_SSLMODE}
+      - CHROME_WS_URL=${CHROME_WS_URL}
+      - CHROME_TIMEOUT=${CHROME_TIMEOUT}
     depends_on:
       - db
+      - chrome
     networks:
       - internal
 
@@ -86,6 +92,16 @@ services:
       - internal
     ports:
       - "5432:5432"
+
+  chrome:
+    image: zenika/alpine-chrome:latest
+    restart: always
+    ports:
+      - "9222:9222"
+    command: [ chromium-browser, "--headless", "--disable-gpu", "--no-sandbox", "--remote-debugging-address=0.0.0.0", "--remote-debugging-port=9222" ]
+    networks:
+      - internal
+
 networks:
   internal:
     driver: bridge
