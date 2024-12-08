@@ -24,6 +24,7 @@ func main() {
 	run()
 }
 
+// run starts the worker service.
 func run() {
 	ctx, stop := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
 	defer stop()
