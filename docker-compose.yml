@@ -20,7 +20,7 @@ services:
       - DB_PASSWORD=${DB_PASSWORD}
       - DB_NAME=${DB_NAME}
       - DB_SSLMODE=${DB_SSLMODE}
-      - NOTIFIER_CHROME_WS_URL=${NOTIFIER_CHROME_WS_URL}
+      - CHROME_WS_URL=${CHROME_WS_URL}
       - CHROME_TIMEOUT=${CHROME_TIMEOUT}
     depends_on:
       db:
@@ -48,7 +48,7 @@ services:
       - DB_PASSWORD=${DB_PASSWORD}
       - DB_NAME=${DB_NAME}
       - DB_SSLMODE=${DB_SSLMODE}
-      - SCRAPER_CHROME_WS_URL=${SCRAPER_CHROME_WS_URL}
+      - CHROME_WS_URL=${CHROME_WS_URL}
       - CHROME_TIMEOUT=${CHROME_TIMEOUT}
     depends_on:
       db:
@@ -113,7 +113,7 @@ services:
       - "3000:3000"
     environment:
       - MAX_CONCURRENT_SESSIONS=10
-      - CONNECTION_TIMEOUT=300000 # 5 minutes
+      - CONNECTION_TIMEOUT=600000 # 10 minutes
       - MAX_QUEUE_LENGTH=20
       - PREBOOT_CHROME=true
       - DEMO_MODE=false
