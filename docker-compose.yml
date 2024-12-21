@@ -1,7 +1,6 @@
-version: '3.8'
-
 services:
   notifier:
+    image: notifier:latest
     build:
       context: .
       dockerfile: Dockerfile
@@ -20,17 +19,14 @@ services:
       - DB_PASSWORD=${DB_PASSWORD}
       - DB_NAME=${DB_NAME}
       - DB_SSLMODE=${DB_SSLMODE}
-      - NOTIFIER_CHROME_WS_URL=${NOTIFIER_CHROME_WS_URL}
-      - CHROME_TIMEOUT=${CHROME_TIMEOUT}
     depends_on:
       db:
-        condition: service_healthy
-      chrome:
         condition: service_healthy
     networks:
       - internal
 
   scraper:
+    image: scraper:latest
     build:
       context: .
       dockerfile: Dockerfile
@@ -48,17 +44,14 @@ services:
       - DB_PASSWORD=${DB_PASSWORD}
       - DB_NAME=${DB_NAME}
       - DB_SSLMODE=${DB_SSLMODE}
-      - SCRAPER_CHROME_WS_URL=${SCRAPER_CHROME_WS_URL}
-      - CHROME_TIMEOUT=${CHROME_TIMEOUT}
     depends_on:
       db:
-        condition: service_healthy
-      chrome:
         condition: service_healthy
     networks:
       - internal
 
   worker:
+    image: worker:latest
     build:
       context: .
       dockerfile: Dockerfile
@@ -103,27 +96,6 @@ services:
       timeout: 5s
       retries: 5
       start_period: 5s
-
-  chrome:
-    image: browserless/chrome:latest
-    restart: always
-    networks:
-      - internal
-    ports:
-      - "3000:3000"
-    environment:
-      - MAX_CONCURRENT_SESSIONS=10
-      - CONNECTION_TIMEOUT=300000 # 5 minutes
-      - MAX_QUEUE_LENGTH=20
-      - PREBOOT_CHROME=true
-      - DEMO_MODE=false
-      - HOST=0.0.0.0
-      - ENABLE_DEBUGGER=false
-    healthcheck:
-      test: [ "CMD-SHELL", "curl -f http://localhost:3000 || exit 1" ]
-      interval: 10s
-      timeout: 5s
-      retries: 3
 
 networks:
   internal:

@@ -24,7 +24,6 @@ func main() {
 	run()
 }
 
-// run starts the worker service.
 func run() {
 	ctx, stop := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
 	defer stop()
@@ -72,5 +71,5 @@ func run() {
 
 	stop()
 
-	lg.Info("service stopped gracefully")
+	lg.Info("worker service stopped gracefully")
 }

@@ -17,44 +17,56 @@ import (
 )
 
 type Service struct {
-	l              *logger.Logger
-	repo           Repository
-	pa             PolovniAutoAdapter
-	interval       time.Duration
-	startOffset    time.Duration
-	workers        int
-	carChassisList *cache.Storage[string, string]
+	l           *logger.Logger
+	repo        Repository
+	paAdapter   PolovniAutoAdapter
+	fetcher     Fetcher
+	interval    time.Duration
+	startOffset time.Duration
+	workers     int
+	// TODO: add job for updating the cache
+	chassisList *cache.Storage[string, string]
 }
 
 // NewService creates a new Scraper Service instance.
 func NewService(
 	l *logger.Logger,
 	repo Repository,
-	pa PolovniAutoAdapter,
+	paAdapter PolovniAutoAdapter,
+	fetcher Fetcher,
 	interval time.Duration,
 	startOffset time.Duration,
 	workers int,
 ) *Service {
 	return &Service{
-		l:              l,
-		repo:           repo,
-		pa:             pa,
-		interval:       interval,
-		startOffset:    startOffset,
-		workers:        workers,
-		carChassisList: cache.New[string, string](),
+		l:           l,
+		repo:        repo,
+		paAdapter:   paAdapter,
+		fetcher:     fetcher,
+		interval:    interval,
+		startOffset: startOffset,
+		workers:     workers,
+		chassisList: cache.New[string, string](),
 	}
 }
 
 // Start begins the scraping process.
 func (s *Service) Start(ctx context.Context) error {
+	// set chassis list in cache
+	chassis, err := s.fetcher.GetChassisFromJSON()
+	if err != nil {
+		return errors.Wrap(err, "failed to get chassis from json")
+	}
+
+	s.chassisList.SetBatch(chassis)
+
 	s.l.Info(fmt.Sprintf("scraper service will start after: %v, interval: %v", s.startOffset, s.interval))
 
 	// add a wait to not match the sending of notifications
 	time.Sleep(s.startOffset)
 	// to distinguish new listings from old ones,
 	// we save all listings in the database when we start the app
-	if err := s.ScrapeNewListings(ctx); err != nil {
+	if err = s.ScrapeNewListings(ctx); err != nil {
 		return err
 	}
 
@@ -68,7 +80,7 @@ func (s *Service) Start(ctx context.Context) error {
 			case <-ticker.C:
 				s.l.Info("scraper ticker ticked")
 
-				if err := s.ScrapeNewListings(ctx); err != nil {
+				if err = s.ScrapeNewListings(ctx); err != nil {
 					s.l.Error("failed to scrape new listings", logger.ErrAttr(err))
 				}
 			case <-ctx.Done():
@@ -133,23 +145,6 @@ func (s *Service) ScrapeNewListings(ctx context.Context) error {
 	}
 
 	s.l.Info("scraped new listings successfully")
-
-	return nil
-}
-
-// UpdateCarChassisList updates the list of car body types.
-func (s *Service) UpdateCarChassisList(ctx context.Context) error {
-	chassisList, err := s.pa.GetCarChassisList(ctx)
-	if err != nil {
-		s.l.Error("failed to get chassis list in scrapper", logger.ErrAttr(err))
-		return errors.Wrap(err, "failed to get chassis list")
-	}
-
-	// replace the old list with the new one
-	if len(chassisList) != 0 {
-		s.carChassisList.Replace(chassisList)
-		s.l.Info("updating car chassis list in scrapper")
-	}
 
 	return nil
 }
@@ -295,7 +290,7 @@ func (s *Service) scrapeNewListings(ctx context.Context, sub ds.SubscriptionResp
 func (s *Service) scrape(ctx context.Context, params map[string]string) ([]polovniauto.Listing, error) {
 	s.l.Info("scraping started")
 
-	listings, err := s.pa.GetNewListings(ctx, params)
+	listings, err := s.paAdapter.GetNewListings(ctx, params)
 	if err != nil {
 		return []polovniauto.Listing{}, errors.Wrap(err, "failed to get new listings")
 	}
@@ -340,7 +335,7 @@ func (s *Service) subscriptionToParams(subscription ds.SubscriptionResponse) map
 
 		// map chassis names to IDs
 		for _, chassisName := range subscription.Chassis {
-			if chassisID, exists := s.carChassisList.Get(chassisName); exists {
+			if chassisID, exists := s.chassisList.Get(chassisName); exists {
 				mappedChassis = append(mappedChassis, chassisID)
 			}
 		}

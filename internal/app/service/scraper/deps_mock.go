@@ -41,34 +41,57 @@ func (m *MockPolovniAutoAdapter) EXPECT() *MockPolovniAutoAdapterMockRecorder {
 	return m.recorder
 }
 
-// GetCarChassisList mocks base method.
-func (m *MockPolovniAutoAdapter) GetCarChassisList(arg0 context.Context) (map[string]string, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetCarChassisList", arg0)
-	ret0, _ := ret[0].(map[string]string)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// GetCarChassisList indicates an expected call of GetCarChassisList.
-func (mr *MockPolovniAutoAdapterMockRecorder) GetCarChassisList(arg0 any) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetCarChassisList", reflect.TypeOf((*MockPolovniAutoAdapter)(nil).GetCarChassisList), arg0)
-}
-
 // GetNewListings mocks base method.
-func (m *MockPolovniAutoAdapter) GetNewListings(arg0 context.Context, arg1 map[string]string) ([]polovniauto.Listing, error) {
+func (m *MockPolovniAutoAdapter) GetNewListings(ctx context.Context, params map[string]string) ([]polovniauto.Listing, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetNewListings", arg0, arg1)
+	ret := m.ctrl.Call(m, "GetNewListings", ctx, params)
 	ret0, _ := ret[0].([]polovniauto.Listing)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // GetNewListings indicates an expected call of GetNewListings.
-func (mr *MockPolovniAutoAdapterMockRecorder) GetNewListings(arg0, arg1 any) *gomock.Call {
+func (mr *MockPolovniAutoAdapterMockRecorder) GetNewListings(ctx, params any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetNewListings", reflect.TypeOf((*MockPolovniAutoAdapter)(nil).GetNewListings), arg0, arg1)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetNewListings", reflect.TypeOf((*MockPolovniAutoAdapter)(nil).GetNewListings), ctx, params)
+}
+
+// MockFetcher is a mock of Fetcher interface.
+type MockFetcher struct {
+	ctrl     *gomock.Controller
+	recorder *MockFetcherMockRecorder
+}
+
+// MockFetcherMockRecorder is the mock recorder for MockFetcher.
+type MockFetcherMockRecorder struct {
+	mock *MockFetcher
+}
+
+// NewMockFetcher creates a new mock instance.
+func NewMockFetcher(ctrl *gomock.Controller) *MockFetcher {
+	mock := &MockFetcher{ctrl: ctrl}
+	mock.recorder = &MockFetcherMockRecorder{mock}
+	return mock
+}
+
+// EXPECT returns an object that allows the caller to indicate expected use.
+func (m *MockFetcher) EXPECT() *MockFetcherMockRecorder {
+	return m.recorder
+}
+
+// GetChassisFromJSON mocks base method.
+func (m *MockFetcher) GetChassisFromJSON() (map[string]string, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetChassisFromJSON")
+	ret0, _ := ret[0].(map[string]string)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetChassisFromJSON indicates an expected call of GetChassisFromJSON.
+func (mr *MockFetcherMockRecorder) GetChassisFromJSON() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetChassisFromJSON", reflect.TypeOf((*MockFetcher)(nil).GetChassisFromJSON))
 }
 
 // MockRepository is a mock of Repository interface.
@@ -95,45 +118,45 @@ func (m *MockRepository) EXPECT() *MockRepositoryMockRecorder {
 }
 
 // GetAllSubscriptions mocks base method.
-func (m *MockRepository) GetAllSubscriptions(arg0 context.Context) ([]ds.SubscriptionResponse, error) {
+func (m *MockRepository) GetAllSubscriptions(ctx context.Context) ([]ds.SubscriptionResponse, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetAllSubscriptions", arg0)
+	ret := m.ctrl.Call(m, "GetAllSubscriptions", ctx)
 	ret0, _ := ret[0].([]ds.SubscriptionResponse)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // GetAllSubscriptions indicates an expected call of GetAllSubscriptions.
-func (mr *MockRepositoryMockRecorder) GetAllSubscriptions(arg0 any) *gomock.Call {
+func (mr *MockRepositoryMockRecorder) GetAllSubscriptions(ctx any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetAllSubscriptions", reflect.TypeOf((*MockRepository)(nil).GetAllSubscriptions), arg0)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetAllSubscriptions", reflect.TypeOf((*MockRepository)(nil).GetAllSubscriptions), ctx)
 }
 
 // GetListingsBySubscriptionID mocks base method.
-func (m *MockRepository) GetListingsBySubscriptionID(arg0 context.Context, arg1 string) ([]ds.ListingResponse, error) {
+func (m *MockRepository) GetListingsBySubscriptionID(ctx context.Context, subscriptionID string) ([]ds.ListingResponse, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetListingsBySubscriptionID", arg0, arg1)
+	ret := m.ctrl.Call(m, "GetListingsBySubscriptionID", ctx, subscriptionID)
 	ret0, _ := ret[0].([]ds.ListingResponse)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // GetListingsBySubscriptionID indicates an expected call of GetListingsBySubscriptionID.
-func (mr *MockRepositoryMockRecorder) GetListingsBySubscriptionID(arg0, arg1 any) *gomock.Call {
+func (mr *MockRepositoryMockRecorder) GetListingsBySubscriptionID(ctx, subscriptionID any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetListingsBySubscriptionID", reflect.TypeOf((*MockRepository)(nil).GetListingsBySubscriptionID), arg0, arg1)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetListingsBySubscriptionID", reflect.TypeOf((*MockRepository)(nil).GetListingsBySubscriptionID), ctx, subscriptionID)
 }
 
 // UpsertListing mocks base method.
-func (m *MockRepository) UpsertListing(arg0 context.Context, arg1 ds.UpsertListingRequest) error {
+func (m *MockRepository) UpsertListing(ctx context.Context, listing ds.UpsertListingRequest) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "UpsertListing", arg0, arg1)
+	ret := m.ctrl.Call(m, "UpsertListing", ctx, listing)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // UpsertListing indicates an expected call of UpsertListing.
-func (mr *MockRepositoryMockRecorder) UpsertListing(arg0, arg1 any) *gomock.Call {
+func (mr *MockRepositoryMockRecorder) UpsertListing(ctx, listing any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpsertListing", reflect.TypeOf((*MockRepository)(nil).UpsertListing), arg0, arg1)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpsertListing", reflect.TypeOf((*MockRepository)(nil).UpsertListing), ctx, listing)
 }

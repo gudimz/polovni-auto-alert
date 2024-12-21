@@ -18,6 +18,7 @@ import (
 	"github.com/chromedp/chromedp"
 
 	"github.com/gudimz/polovni-auto-alert/pkg/logger"
+	"github.com/gudimz/polovni-auto-alert/pkg/utils"
 )
 
 type Client struct {
@@ -27,11 +28,14 @@ type Client struct {
 	httpClient *http.Client
 }
 
-var ErrUnexpectedStatusCode = errors.New("unexpected status code")
+var (
+	ErrUnexpectedStatusCode = errors.New("unexpected status code")
+)
 
 const (
 	urlPA = "https://www.polovniautomobili.com"
 
+	delay          = 1 * time.Second
 	maxRandomDelay = 3
 )
 
@@ -100,14 +104,10 @@ func (c *Client) GetNewListings(ctx context.Context, params map[string]string) (
 
 // GetCarsList retrieves the list of car brands and models.
 func (c *Client) GetCarsList(ctx context.Context) (map[string][]string, error) {
-	// create timeout
-	ctx, cancel := context.WithTimeout(ctx, c.cfg.ChromeTimeout)
+	ctx, cancel := chromedp.NewRemoteAllocator(ctx, c.cfg.ChromeWSURL)
 	defer cancel()
 
-	allocCtx, allocCtxCancel := chromedp.NewRemoteAllocator(ctx, c.cfg.ChromeWSURL)
-	defer allocCtxCancel()
-
-	ctxTask, taskCancel := chromedp.NewContext(allocCtx)
+	ctxTask, taskCancel := chromedp.NewContext(ctx)
 	defer taskCancel()
 
 	c.l.Info("loading the site for cars list")
@@ -116,6 +116,7 @@ func (c *Client) GetCarsList(ctx context.Context) (map[string][]string, error) {
 		ctxTask,
 		chromedp.Navigate(urlPA),
 		chromedp.WaitVisible(`#brand`, chromedp.ByID), // wait for the brand list to load
+		chromedp.Sleep(delay),
 	); err != nil {
 		return nil, fmt.Errorf("error loading the site for cars list: %w", err)
 	}
@@ -124,7 +125,7 @@ func (c *Client) GetCarsList(ctx context.Context) (map[string][]string, error) {
 	if err := chromedp.Run(
 		ctxTask,
 		chromedp.Evaluate(`Array.from(document.querySelectorAll("#brand option"))
-			.map(option => ({ id: option.value, name: option.textContent.trim() }))`, &brands),
+        .map(option => ({ name: option.textContent.trim(), id: option.value }))`, &brands),
 	); err != nil {
 		return nil, fmt.Errorf("error getting brands for cars list: %w", err)
 	}
@@ -141,29 +142,41 @@ func (c *Client) GetCarsList(ctx context.Context) (map[string][]string, error) {
 
 		c.l.Debug("processing brand: " + brand["name"])
 
-		var models []string
+		models := []string{}
 		if err := chromedp.Run(
 			ctxTask,
+			// clear the model list
+			chromedp.Evaluate(`document.querySelector("#model").innerHTML = ""`, nil),
 			// select the brand
 			chromedp.SetValue(`#brand`, brand["id"], chromedp.ByID),
 			// generate change event
 			chromedp.Evaluate(`document.querySelector("#brand").dispatchEvent(new Event('change'))`, nil),
-			// wait for the models to load
-			chromedp.WaitVisible(`#model option`, chromedp.ByID), // waits for the model options to be available
+			// wait for models to load
+			chromedp.WaitNotPresent(`#model option`, chromedp.ByID),
+			// for stability
+			chromedp.Sleep(delay),
 			// get the models
 			chromedp.Evaluate(`Array.from(document.querySelectorAll("#model option"))
-				.filter(option => option.value)
-				.map(option => option.textContent.trim())`, &models),
+            .map(option => option.value)
+            .filter(value => value !== "")`, &models),
 		); err != nil {
 			c.l.Error("error getting models", logger.ErrAttr(err), logger.StringAttr("brand", brand["name"]))
+			// Skip this brand if there was an error or no models found
 			continue
 		}
 
-		modelsAndBrands[brand["name"]] = models
-		c.l.Debug(fmt.Sprintf("processed brand %s, found models: %d", brand["name"], len(models)))
+		// skip if models are not found
+		if len(models) == 0 {
+			c.l.Warn("no models found", logger.StringAttr("brand", brand["name"]))
+			continue
+		}
+
+		uniqueModels := utils.RemoveDuplicates(models)
+		modelsAndBrands[brand["id"]] = uniqueModels
+		c.l.Debug(fmt.Sprintf("processed brand %s, found models: %d", brand["name"], len(uniqueModels)))
 	}
 
-	c.l.Info(fmt.Sprintf("found brands: %d and success finished", len(modelsAndBrands)))
+	c.l.Info(fmt.Sprintf("found brands: %d and successfully finished", len(modelsAndBrands)))
 
 	return modelsAndBrands, nil
 }
@@ -172,14 +185,10 @@ func (c *Client) GetCarsList(ctx context.Context) (map[string][]string, error) {
 //
 //nolint:dupl,nolintlint
 func (c *Client) GetCarChassisList(ctx context.Context) (map[string]string, error) {
-	// create timeout
-	ctx, cancel := context.WithTimeout(ctx, c.cfg.ChromeTimeout)
+	ctx, cancel := chromedp.NewRemoteAllocator(ctx, c.cfg.ChromeWSURL)
 	defer cancel()
 
-	allocCtx, allocCtxCancel := chromedp.NewRemoteAllocator(ctx, c.cfg.ChromeWSURL)
-	defer allocCtxCancel()
-
-	ctxTask, taskCancel := chromedp.NewContext(allocCtx)
+	ctxTask, taskCancel := chromedp.NewContext(ctx)
 	defer taskCancel()
 
 	c.l.Info("loading the site for car chassis list")
@@ -187,7 +196,8 @@ func (c *Client) GetCarChassisList(ctx context.Context) (map[string]string, erro
 	if err := chromedp.Run(
 		ctxTask,
 		chromedp.Navigate(urlPA),
-		chromedp.WaitVisible("#chassis", chromedp.ByID), // wait for the chassis list to load
+		chromedp.WaitReady(`#brand`, chromedp.ByID),
+		chromedp.Sleep(delay),
 	); err != nil {
 		return nil, fmt.Errorf("error loading the site: %w", err)
 	}
@@ -220,14 +230,10 @@ func (c *Client) GetCarChassisList(ctx context.Context) (map[string]string, erro
 //
 //nolint:dupl,nolintlint
 func (c *Client) GetRegionsList(ctx context.Context) (map[string]string, error) {
-	// create timeout
-	ctx, cancel := context.WithTimeout(ctx, c.cfg.ChromeTimeout)
+	ctx, cancel := chromedp.NewRemoteAllocator(ctx, c.cfg.ChromeWSURL)
 	defer cancel()
 
-	allocCtx, allocCtxCancel := chromedp.NewRemoteAllocator(ctx, c.cfg.ChromeWSURL)
-	defer allocCtxCancel()
-
-	ctxTask, taskCancel := chromedp.NewContext(allocCtx)
+	ctxTask, taskCancel := chromedp.NewContext(ctx)
 	defer taskCancel()
 
 	c.l.Info("loading the site for regions list")
@@ -236,6 +242,7 @@ func (c *Client) GetRegionsList(ctx context.Context) (map[string]string, error) 
 		ctxTask,
 		chromedp.Navigate(urlPA),
 		chromedp.WaitVisible("#region", chromedp.ByID), // wait for the region list to load
+		chromedp.Sleep(delay),
 	); err != nil {
 		return nil, fmt.Errorf("error loading the site: %w", err)
 	}

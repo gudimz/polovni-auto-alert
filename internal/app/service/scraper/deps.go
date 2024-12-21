@@ -10,13 +10,16 @@ import (
 //go:generate mockgen -source=deps.go -destination=deps_mock.go -package=scraper
 type (
 	PolovniAutoAdapter interface {
-		GetNewListings(context.Context, map[string]string) ([]polovniauto.Listing, error)
-		GetCarChassisList(context.Context) (map[string]string, error)
+		GetNewListings(ctx context.Context, params map[string]string) ([]polovniauto.Listing, error)
+	}
+
+	Fetcher interface {
+		GetChassisFromJSON() (map[string]string, error)
 	}
 
 	Repository interface {
-		GetAllSubscriptions(context.Context) ([]ds.SubscriptionResponse, error)
-		UpsertListing(context.Context, ds.UpsertListingRequest) error
-		GetListingsBySubscriptionID(context.Context, string) ([]ds.ListingResponse, error)
+		GetAllSubscriptions(ctx context.Context) ([]ds.SubscriptionResponse, error)
+		UpsertListing(ctx context.Context, listing ds.UpsertListingRequest) error
+		GetListingsBySubscriptionID(ctx context.Context, subscriptionID string) ([]ds.ListingResponse, error)
 	}
 )

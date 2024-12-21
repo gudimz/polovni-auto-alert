@@ -3,17 +3,15 @@ package main
 import (
 	"context"
 	"os/signal"
-	"sync"
 	"syscall"
 
 	"github.com/kelseyhightower/envconfig"
 
-	"github.com/gudimz/polovni-auto-alert/internal/app/job"
 	"github.com/gudimz/polovni-auto-alert/internal/app/repository/psql/db"
+	"github.com/gudimz/polovni-auto-alert/internal/app/service/fetcher"
 	"github.com/gudimz/polovni-auto-alert/internal/app/service/notifier"
 	"github.com/gudimz/polovni-auto-alert/internal/app/transport/telegram"
 	"github.com/gudimz/polovni-auto-alert/pkg/logger"
-	"github.com/gudimz/polovni-auto-alert/pkg/polovniauto"
 	tgCli "github.com/gudimz/polovni-auto-alert/pkg/telegram"
 )
 
@@ -25,9 +23,6 @@ func main() {
 	run()
 }
 
-// run starts the notifier service
-//
-//nolint:funlen
 func run() {
 	ctx, stop := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
 	defer stop()
@@ -42,7 +37,9 @@ func run() {
 		logger.WithAddSource(true),
 		logger.WithIsJSON(true))
 
-	repo, err := db.NewRepo(ctx, l, db.NewConfig())
+	dbCfg := db.NewConfig()
+
+	repo, err := db.NewRepo(ctx, l, dbCfg)
 	if err != nil {
 		l.Error("failed to initialize repository", logger.ErrAttr(err))
 		return
@@ -54,72 +51,28 @@ func run() {
 		return
 	}
 
-	bot, err := tgCli.NewBot(l, tgCli.NewConfig())
+	tgCfg := tgCli.NewConfig()
+
+	bot, err := tgCli.NewBot(l, tgCfg)
 	if err != nil {
 		l.Error("failed to create bot", logger.ErrAttr(err))
 		return
 	}
 
-	paCli := polovniauto.NewClient(l, polovniauto.NewConfig())
+	fetch := fetcher.NewService(l, nil) // paAdapter not needed for notifier service
 
-	svc := notifier.NewService(
-		l,
-		repo,
-		paCli,
-	)
-
-	// run critical jobs before starting the handler
-	jobsList := map[string]func(context.Context) error{
-		job.NotifierCarsListJobName: svc.UpdateCarList,
-		job.NotifierRegionsJobName:  svc.UpdateCarRegionsList,
-		job.NotifierChassisJobName:  svc.UpdateCarChassisList,
-	}
-
-	var wg sync.WaitGroup
-
-	errCh := make(chan error, len(jobsList))
-
-	for name, f := range jobsList {
-		wg.Add(1)
-
-		go func(name string, f func(context.Context) error) {
-			defer wg.Done()
-
-			l.Info("running critical job before start", logger.StringAttr("job_name", name))
-
-			if errF := f(ctx); errF != nil {
-				l.Error("failed to run critical job before start", logger.ErrAttr(errF), logger.StringAttr("job_name", name))
-				errCh <- errF
-			}
-		}(name, f)
-	}
-
-	wg.Wait()
-	close(errCh)
-
-	for err = range errCh {
-		if err != nil {
-			stop()
-			return
-		}
-	}
-
-	l.Info("critical jobs  for notifier completed successfully")
-
-	jobs := job.New(l, job.NewConfig(), svc, nil)
-
+	svc := notifier.NewService(l, repo, fetch)
 	go func() {
-		if err = jobs.Execute(ctx, jobsList); err != nil {
-			l.Error("failed to start jobs for notifier", logger.ErrAttr(err))
+		if err = svc.Start(); err != nil {
+			l.Error("failed to start notifier service", logger.ErrAttr(err))
 			stop()
 		}
 	}()
 
 	tgHandler := telegram.NewBotHandler(l, bot, svc)
-
 	go func() {
 		if err = tgHandler.Start(ctx); err != nil {
-			l.Error("failed to start notifier service", logger.ErrAttr(err))
+			l.Error("failed to start tg handler service", logger.ErrAttr(err))
 			stop()
 		}
 	}()
@@ -132,5 +85,5 @@ func run() {
 
 	stop()
 
-	l.Info("service stopped gracefully")
+	l.Info("notifier service stopped gracefully")
 }

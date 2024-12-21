@@ -1,0 +1,46 @@
+services:
+  fetcher:
+    image: fetcher:latest
+    build:
+      context: .
+      dockerfile: Dockerfile.fetcher
+      args:
+        BINARY: fetcher
+    command: /app/fetcher
+    restart: on-failure
+    environment:
+      - FETCHER_LOG_LEVEL=${FETCHER_LOG_LEVEL}
+      - CHROME_WS_URL=${CHROME_WS_URL}
+    depends_on:
+      chrome:
+        condition: service_healthy
+    networks:
+      - internal
+    volumes:
+      - ${PWD}/internal/app/service/fetcher/data:/app/data
+
+  chrome:
+    image: browserless/chrome:latest
+    restart: always
+    networks:
+      - internal
+    ports:
+      - "3000:3000"
+    environment:
+      - MAX_CONCURRENT_SESSIONS=10
+      - CONNECTION_TIMEOUT=300000 # 5 minutes
+      - MAX_QUEUE_LENGTH=20
+      - PREBOOT_CHROME=true
+      - DEMO_MODE=false
+      - HOST=0.0.0.0
+      - ENABLE_DEBUGGER=false
+      - DEBUG=-*
+    healthcheck:
+      test: [ "CMD-SHELL", "curl -f http://localhost:3000 || exit 1" ]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+
+networks:
+  internal:
+    driver: bridge

@@ -25,6 +25,14 @@ Polovni Auto Alert is a Telegram bot specifically designed to help users stay up
 
 To configure the environment variables for the project, create a `.env` file in the root directory of the project. You can use the provided `.env.example` file as a template.
 
+### Fetching data from Polovni Automobili
+Use the provided Makefile to fetch the data from Polovni Automobili before running the project:
+
+```sh
+# Fetch the data from Polovni Automobili
+make docker-compose-up-fetcher
+```
+
 ### Building and Running the Project
 Use the provided Makefile to build and run the project:
 
