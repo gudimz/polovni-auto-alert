@@ -37,10 +37,12 @@ func (s *ServiceTestSuite) SetupTest() {
 		10*time.Second,
 		0,
 		5,
-		map[string]string{
-			"Limuzina": "277",
-			"Pickup":   "2635",
-		})
+	)
+
+	s.svc.chassisList.SetBatch(map[string]string{
+		"Limuzina": "277",
+		"Pickup":   "2635",
+	})
 }
 
 func (s *ServiceTestSuite) TearDownTest() {

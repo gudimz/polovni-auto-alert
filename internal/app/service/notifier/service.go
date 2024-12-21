@@ -6,6 +6,7 @@ import (
 	"github.com/pkg/errors"
 
 	"github.com/gudimz/polovni-auto-alert/internal/pkg/ds"
+	cache "github.com/gudimz/polovni-auto-alert/pkg/in_memory_storage"
 	"github.com/gudimz/polovni-auto-alert/pkg/logger"
 )
 
@@ -13,22 +14,20 @@ import (
 type Service struct {
 	l    *logger.Logger
 	repo Repository
-
-	carsList    map[string][]string
-	chassisList map[string]string
-	regionsList map[string]string
+	// TODO: add job for updating the cache
+	carsList    *cache.Storage[string, []string]
+	chassisList *cache.Storage[string, string]
+	regionsList *cache.Storage[string, string]
 }
 
 // NewService creates a new instance of the notification service.
-func NewService(
-	l *logger.Logger, repo Repository, cars map[string][]string, chassis map[string]string, regions map[string]string,
-) *Service {
+func NewService(l *logger.Logger, repo Repository) *Service {
 	return &Service{
 		l:           l,
 		repo:        repo,
-		carsList:    cars,
-		chassisList: chassis,
-		regionsList: regions,
+		carsList:    cache.New[string, []string](),
+		chassisList: cache.New[string, string](),
+		regionsList: cache.New[string, string](),
 	}
 }
 
@@ -131,14 +130,22 @@ func (s *Service) RemoveSubscriptionByID(ctx context.Context, id string) error {
 	return nil
 }
 
-func (s *Service) GetCarsList() map[string][]string {
-	return s.carsList
+// GetCarBrandsList retrieves the list of car brands.
+func (s *Service) GetCarBrandsList() []string {
+	return s.carsList.Keys()
 }
 
-func (s *Service) GetChassisList() map[string]string {
-	return s.chassisList
+// GetCarModelsList retrieves the list of car models for a given brand.
+func (s *Service) GetCarModelsList(brand string) ([]string, bool) {
+	return s.carsList.Get(brand)
 }
 
+// GetCarChassisList retrieves the list of car body types.
+func (s *Service) GetCarChassisList() map[string]string {
+	return s.chassisList.CopyMap()
+}
+
+// GetRegionsList retrieves the list of regions.
 func (s *Service) GetRegionsList() map[string]string {
-	return s.regionsList
+	return s.regionsList.CopyMap()
 }

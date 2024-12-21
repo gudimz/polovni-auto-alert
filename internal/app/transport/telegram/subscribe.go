@@ -87,11 +87,7 @@ func (h *BotHandler) sendBrandSelectionMessage(ctx context.Context, chatID int64
 
 You can cancel the process at any time by typing '🚫 cancel'.`
 
-	brands := make([]string, 0, len(h.svc.GetCarsList()))
-	for brand := range h.svc.GetCarsList() {
-		brands = append(brands, brand)
-	}
-
+	brands := h.svc.GetCarBrandsList()
 	sort.Slice(brands, func(i, j int) bool {
 		return brands[i] < brands[j]
 	})
@@ -168,7 +164,11 @@ You can cancel the process at any time by sending '🚫 cancel'`
 func (h *BotHandler) sendModelSelectionMessage(ctx context.Context, chatID int64, text, brand string, page int) error {
 	var keyboard tgbotapi.InlineKeyboardMarkup
 
-	models := h.svc.GetCarsList()[brand]
+	models, exists := h.svc.GetCarModelsList(brand)
+	if !exists {
+		h.l.Error("failed to get car models", logger.StringAttr("brand", brand))
+		return errors.New("failed to get car models")
+	}
 
 	sort.Slice(models, func(i, j int) bool {
 		return models[i] < models[j]
@@ -274,7 +274,7 @@ func (h *BotHandler) sendChassisSelectionMessage(ctx context.Context, chatID int
 		tgbotapi.NewInlineKeyboardButtonData("✅ Done", "/done"),
 	}
 
-	buttons := generateButtons(ctx, h.svc.GetChassisList())
+	buttons := generateButtons(ctx, h.svc.GetCarChassisList())
 
 	if err := h.sendSubscribeMessageWithButtons(ctx, MessageWithButtonsParams{
 		ChatID:         chatID,

@@ -11,6 +11,7 @@ import (
 	"github.com/pkg/errors"
 
 	"github.com/gudimz/polovni-auto-alert/internal/pkg/ds"
+	cache "github.com/gudimz/polovni-auto-alert/pkg/in_memory_storage"
 	"github.com/gudimz/polovni-auto-alert/pkg/logger"
 	"github.com/gudimz/polovni-auto-alert/pkg/polovniauto"
 )
@@ -22,7 +23,8 @@ type Service struct {
 	interval    time.Duration
 	startOffset time.Duration
 	workers     int
-	chassisList map[string]string
+	// TODO: add job for updating the cache
+	chassisList *cache.Storage[string, string]
 }
 
 // NewService creates a new Scraper Service instance.
@@ -33,7 +35,6 @@ func NewService(
 	interval time.Duration,
 	startOffset time.Duration,
 	workers int,
-	chassis map[string]string,
 ) *Service {
 	return &Service{
 		l:           l,
@@ -42,7 +43,7 @@ func NewService(
 		interval:    interval,
 		startOffset: startOffset,
 		workers:     workers,
-		chassisList: chassis,
+		chassisList: cache.New[string, string](),
 	}
 }
 
@@ -321,8 +322,9 @@ func (s *Service) subscriptionToParams(subscription ds.SubscriptionResponse) map
 	if len(subscription.Chassis) > 0 {
 		var mappedChassis []string
 
+		// map chassis names to IDs
 		for _, chassisName := range subscription.Chassis {
-			if chassisID, exists := s.chassisList[chassisName]; exists {
+			if chassisID, exists := s.chassisList.Get(chassisName); exists {
 				mappedChassis = append(mappedChassis, chassisID)
 			}
 		}

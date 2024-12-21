@@ -32,22 +32,27 @@ func (s *ServiceTestSuite) SetupTest() {
 	s.svc = NewService(
 		lg,
 		s.mockRepo,
-		map[string][]string{
-			"bmw": {
-				"m3",
-				"m5",
-			},
-			"audi": {
-				"a5",
-			},
-		},
-		map[string]string{"Beograd": "Beograd"},
-		map[string]string{
-			"Limuzina": "277",
-			"Pickup":   "2635",
-		},
 	)
 	s.Require().NoError(err)
+
+	s.svc.carsList.SetBatch(map[string][]string{
+		"bmw": {
+			"m3",
+			"m5",
+		},
+		"audi": {
+			"a5",
+		},
+	})
+
+	s.svc.chassisList.SetBatch(map[string]string{
+		"Limuzina": "277",
+		"Pickup":   "2635",
+	})
+
+	s.svc.regionsList.SetBatch(map[string]string{
+		"Beograd": "Beograd",
+	})
 }
 
 func (s *ServiceTestSuite) TearDownTest() {
@@ -499,40 +504,96 @@ func (s *ServiceTestSuite) TestService_RemoveSubscriptionByID() {
 	}
 }
 
-func (s *ServiceTestSuite) TestService_GetCarsList() {
-	want := map[string][]string{
-		"bmw":  {"m3", "m6"},
-		"audi": {"a1", "a3"},
+func (s *ServiceTestSuite) TestService_GetCarBrandsList() {
+	testCases := []struct {
+		name string
+		want []string
+	}{
+		{
+			name: "success",
+			want: []string{"bmw", "audi"},
+		},
 	}
 
-	s.svc.carsList = want
-
-	got := s.svc.GetCarsList()
-	s.Equal(want, got)
+	for _, tc := range testCases {
+		s.Run(tc.name, func() {
+			got := s.svc.GetCarBrandsList()
+			s.ElementsMatch(tc.want, got)
+		})
+	}
 }
 
-func (s *ServiceTestSuite) TestService_GetChassisList() {
-	want := map[string]string{
-		"Pickup": "2635",
-		"Kupe":   "2633",
+func (s *ServiceTestSuite) TestService_GetCarModelsList() {
+	testCases := []struct {
+		name  string
+		brand string
+		ok    bool
+		want  []string
+	}{
+		{
+			name:  "success",
+			brand: "bmw",
+			ok:    true,
+			want:  []string{"m3", "m5"},
+		},
+		{
+			name:  "brand not found",
+			brand: "mercedes",
+			ok:    false,
+			want:  nil,
+		},
 	}
 
-	s.svc.chassisList = want
+	for _, tc := range testCases {
+		s.Run(tc.name, func() {
+			got, ok := s.svc.GetCarModelsList(tc.brand)
+			s.Equal(tc.ok, ok)
+			s.Equal(tc.want, got)
+		})
+	}
+}
 
-	got := s.svc.GetChassisList()
-	s.Equal(want, got)
+func (s *ServiceTestSuite) TestService_GetCarChassisList() {
+	testCases := []struct {
+		name string
+		want map[string]string
+	}{
+		{
+			name: "success",
+			want: map[string]string{
+				"Limuzina": "277",
+				"Pickup":   "2635",
+			},
+		},
+	}
+
+	for _, tc := range testCases {
+		s.Run(tc.name, func() {
+			got := s.svc.GetCarChassisList()
+			s.Equal(tc.want, got)
+		})
+	}
 }
 
 func (s *ServiceTestSuite) TestService_GetRegionsList() {
-	want := map[string]string{
-		"Beograd":   "Beograd",
-		"Vojvodina": "Vojvodina",
+	testCases := []struct {
+		name string
+		want map[string]string
+	}{
+		{
+			name: "success",
+			want: map[string]string{
+				"Beograd": "Beograd",
+			},
+		},
 	}
 
-	s.svc.regionsList = want
-
-	got := s.svc.GetRegionsList()
-	s.Equal(want, got)
+	for _, tc := range testCases {
+		s.Run(tc.name, func() {
+			got := s.svc.GetRegionsList()
+			s.Equal(tc.want, got)
+		})
+	}
 }
 
 func TestServiceTestSuite(t *testing.T) {

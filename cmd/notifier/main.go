@@ -10,7 +10,6 @@ import (
 	"github.com/gudimz/polovni-auto-alert/internal/app/repository/psql/db"
 	"github.com/gudimz/polovni-auto-alert/internal/app/service/notifier"
 	"github.com/gudimz/polovni-auto-alert/internal/app/transport/telegram"
-	"github.com/gudimz/polovni-auto-alert/internal/pkg/data"
 	"github.com/gudimz/polovni-auto-alert/pkg/logger"
 	tgCli "github.com/gudimz/polovni-auto-alert/pkg/telegram"
 )
@@ -59,18 +58,7 @@ func run() {
 		return
 	}
 
-	dataLoader, err := data.NewLoader()
-	if err != nil {
-		l.Error("failed to create data loader", logger.ErrAttr(err))
-	}
-
-	svc := notifier.NewService(
-		l,
-		repo,
-		dataLoader.GetCarsList(),
-		dataLoader.GetChassisList(),
-		dataLoader.GetRegionsList(),
-	)
+	svc := notifier.NewService(l, repo)
 
 	tgHandler := telegram.NewBotHandler(l, bot, svc)
 

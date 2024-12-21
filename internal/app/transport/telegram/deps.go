@@ -24,8 +24,9 @@ type (
 		GetAllSubscriptionsByUserID(ctx context.Context, userID int64) ([]ds.SubscriptionResponse, error)
 		UpsertUser(ctx context.Context, user ds.UserRequest) (ds.UserResponse, error)
 
-		GetCarsList() map[string][]string
-		GetChassisList() map[string]string
+		GetCarBrandsList() []string
+		GetCarModelsList(brand string) ([]string, bool)
+		GetCarChassisList() map[string]string
 		GetRegionsList() map[string]string
 	}
 )
