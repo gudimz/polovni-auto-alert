@@ -71,5 +71,5 @@ func run() {
 
 	stop()
 
-	lg.Info("service stopped gracefully")
+	lg.Info("worker service stopped gracefully")
 }

@@ -13,6 +13,10 @@ type (
 		GetNewListings(ctx context.Context, params map[string]string) ([]polovniauto.Listing, error)
 	}
 
+	Fetcher interface {
+		GetChassisFromJSON() (map[string]string, error)
+	}
+
 	Repository interface {
 		GetAllSubscriptions(ctx context.Context) ([]ds.SubscriptionResponse, error)
 		UpsertListing(ctx context.Context, listing ds.UpsertListingRequest) error

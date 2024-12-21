@@ -56,6 +56,44 @@ func (mr *MockPolovniAutoAdapterMockRecorder) GetNewListings(ctx, params any) *g
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetNewListings", reflect.TypeOf((*MockPolovniAutoAdapter)(nil).GetNewListings), ctx, params)
 }
 
+// MockFetcher is a mock of Fetcher interface.
+type MockFetcher struct {
+	ctrl     *gomock.Controller
+	recorder *MockFetcherMockRecorder
+}
+
+// MockFetcherMockRecorder is the mock recorder for MockFetcher.
+type MockFetcherMockRecorder struct {
+	mock *MockFetcher
+}
+
+// NewMockFetcher creates a new mock instance.
+func NewMockFetcher(ctrl *gomock.Controller) *MockFetcher {
+	mock := &MockFetcher{ctrl: ctrl}
+	mock.recorder = &MockFetcherMockRecorder{mock}
+	return mock
+}
+
+// EXPECT returns an object that allows the caller to indicate expected use.
+func (m *MockFetcher) EXPECT() *MockFetcherMockRecorder {
+	return m.recorder
+}
+
+// GetChassisFromJSON mocks base method.
+func (m *MockFetcher) GetChassisFromJSON() (map[string]string, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetChassisFromJSON")
+	ret0, _ := ret[0].(map[string]string)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetChassisFromJSON indicates an expected call of GetChassisFromJSON.
+func (mr *MockFetcherMockRecorder) GetChassisFromJSON() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetChassisFromJSON", reflect.TypeOf((*MockFetcher)(nil).GetChassisFromJSON))
+}
+
 // MockRepository is a mock of Repository interface.
 type MockRepository struct {
 	ctrl     *gomock.Controller

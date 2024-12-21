@@ -140,3 +140,71 @@ func (mr *MockRepositoryMockRecorder) UpsertUser(ctx, request any) *gomock.Call 
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpsertUser", reflect.TypeOf((*MockRepository)(nil).UpsertUser), ctx, request)
 }
+
+// MockFetcher is a mock of Fetcher interface.
+type MockFetcher struct {
+	ctrl     *gomock.Controller
+	recorder *MockFetcherMockRecorder
+}
+
+// MockFetcherMockRecorder is the mock recorder for MockFetcher.
+type MockFetcherMockRecorder struct {
+	mock *MockFetcher
+}
+
+// NewMockFetcher creates a new mock instance.
+func NewMockFetcher(ctrl *gomock.Controller) *MockFetcher {
+	mock := &MockFetcher{ctrl: ctrl}
+	mock.recorder = &MockFetcherMockRecorder{mock}
+	return mock
+}
+
+// EXPECT returns an object that allows the caller to indicate expected use.
+func (m *MockFetcher) EXPECT() *MockFetcherMockRecorder {
+	return m.recorder
+}
+
+// GetCarsFromJSON mocks base method.
+func (m *MockFetcher) GetCarsFromJSON() (map[string][]string, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetCarsFromJSON")
+	ret0, _ := ret[0].(map[string][]string)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetCarsFromJSON indicates an expected call of GetCarsFromJSON.
+func (mr *MockFetcherMockRecorder) GetCarsFromJSON() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetCarsFromJSON", reflect.TypeOf((*MockFetcher)(nil).GetCarsFromJSON))
+}
+
+// GetChassisFromJSON mocks base method.
+func (m *MockFetcher) GetChassisFromJSON() (map[string]string, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetChassisFromJSON")
+	ret0, _ := ret[0].(map[string]string)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetChassisFromJSON indicates an expected call of GetChassisFromJSON.
+func (mr *MockFetcherMockRecorder) GetChassisFromJSON() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetChassisFromJSON", reflect.TypeOf((*MockFetcher)(nil).GetChassisFromJSON))
+}
+
+// GetRegionsFromJSON mocks base method.
+func (m *MockFetcher) GetRegionsFromJSON() (map[string]string, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetRegionsFromJSON")
+	ret0, _ := ret[0].(map[string]string)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetRegionsFromJSON indicates an expected call of GetRegionsFromJSON.
+func (mr *MockFetcherMockRecorder) GetRegionsFromJSON() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetRegionsFromJSON", reflect.TypeOf((*MockFetcher)(nil).GetRegionsFromJSON))
+}

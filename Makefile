@@ -1,12 +1,14 @@
 PROJECT_DIR = $(CURDIR)
 PROJECT_BIN = $(PROJECT_DIR)/bin
 
+DATA_PATH := $(PROJECT_DIR)/internal/app/service/fetcher/data
+
 GOLANGCI_TAG = 1.61.0
 SQLC_PATH ?= configs/sqlc.yaml
 GOLANGCI_LINT_BIN = $(PROJECT_BIN)/golangci-lint
 
 .PHONY: all
-all: build-notifier build-scraper build-worker
+all: build-notifier build-scraper build-worker build-fetcher
 
 # build binary
 .PHONY: build-notifier
@@ -21,6 +23,10 @@ build-scraper:
 build-worker:
 	CGO_ENABLED=0 go build -ldflags="-s -w" -o ./bin/worker ./cmd/worker
 
+.PHONY: build-fetcher
+build-fetcher:
+	CGO_ENABLED=0 go build -ldflags="-s -w" -o ./bin/fetcher ./cmd/fetcher
+
 # sqlc
 .PHONY: install-sqlc
 install-sqlc:
@@ -28,6 +34,7 @@ install-sqlc:
 
 .PHONY: sqlc
 sqlc: install-sqlc
+	@echo "generating sqlc..."
 	@$(shell go env GOPATH)/bin/sqlc generate -f $(SQLC_PATH)
 
 # linter
@@ -42,8 +49,14 @@ install-lint:
 lint: install-lint
 	$(GOLANGCI_LINT_BIN) run ./... --config=./configs/golangci.yml
 
+
+.PHONY: mock
+mock:
+	@echo "generating mocks..."
+	@go generate ./...
+
 .PHONY: generate
-generate: sqlc
+generate: sqlc mock
 
 .PHONY: test
 test:
@@ -71,6 +84,10 @@ docker-build-scraper:
 docker-build-worker:
 	docker build --build-arg BINARY=worker -t worker .
 
+.PHONY: docker-build-fetcher
+docker-build-fetcher:
+	docker build --build-arg BINARY=fetcher --build-arg DATA_PATH=$(DATA_PATH) -t fetcher -f Dockerfile.fetcher .
+
 .PHONY: docker-build-all
 docker-build-all: docker-build-notifier docker-build-scraper docker-build-worker
 
@@ -82,3 +99,10 @@ docker-compose-up: docker-build-all
 .PHONY: docker-compose-down
 docker-compose-down:
 	docker-compose down
+
+.PHONY: docker-compose-up-fetcher
+docker-compose-up-fetcher: docker-build-fetcher
+	docker-compose -f docker-compose.fetcher.yml up --abort-on-container-exit
+.PHONY: docker-compose-down-fetcher
+docker-compose-down-fetcher:
+	docker-compose -f docker-compose.fetcher.yml down

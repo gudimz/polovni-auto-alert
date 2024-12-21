@@ -18,9 +18,10 @@ var errCommon = errors.New("common error")
 
 type ServiceTestSuite struct {
 	suite.Suite
-	ctrl     *gomock.Controller
-	mockRepo *MockRepository
-	svc      *Service
+	ctrl        *gomock.Controller
+	mockRepo    *MockRepository
+	mockFetcher *MockFetcher
+	svc         *Service
 }
 
 func (s *ServiceTestSuite) SetupTest() {
@@ -28,10 +29,13 @@ func (s *ServiceTestSuite) SetupTest() {
 
 	s.ctrl = gomock.NewController(s.T())
 	s.mockRepo = NewMockRepository(s.ctrl)
+	s.mockFetcher = NewMockFetcher(s.ctrl)
+
 	lg := logger.NewLogger()
 	s.svc = NewService(
 		lg,
 		s.mockRepo,
+		s.mockFetcher,
 	)
 	s.Require().NoError(err)
 

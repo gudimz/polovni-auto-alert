@@ -8,6 +8,7 @@ import (
 	"github.com/kelseyhightower/envconfig"
 
 	"github.com/gudimz/polovni-auto-alert/internal/app/repository/psql/db"
+	"github.com/gudimz/polovni-auto-alert/internal/app/service/fetcher"
 	"github.com/gudimz/polovni-auto-alert/internal/app/service/notifier"
 	"github.com/gudimz/polovni-auto-alert/internal/app/transport/telegram"
 	"github.com/gudimz/polovni-auto-alert/pkg/logger"
@@ -58,13 +59,20 @@ func run() {
 		return
 	}
 
-	svc := notifier.NewService(l, repo)
+	fetch := fetcher.NewService(l, nil) // paAdapter not needed for notifier service
+
+	svc := notifier.NewService(l, repo, fetch)
+	go func() {
+		if err = svc.Start(); err != nil {
+			l.Error("failed to start notifier service", logger.ErrAttr(err))
+			stop()
+		}
+	}()
 
 	tgHandler := telegram.NewBotHandler(l, bot, svc)
-
 	go func() {
 		if err = tgHandler.Start(ctx); err != nil {
-			l.Error("failed to start notifier service", logger.ErrAttr(err))
+			l.Error("failed to start tg handler service", logger.ErrAttr(err))
 			stop()
 		}
 	}()
@@ -77,5 +85,5 @@ func run() {
 
 	stop()
 
-	l.Info("service stopped gracefully")
+	l.Info("notifier service stopped gracefully")
 }

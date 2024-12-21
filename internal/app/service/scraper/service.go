@@ -20,6 +20,7 @@ type Service struct {
 	l           *logger.Logger
 	repo        Repository
 	paAdapter   PolovniAutoAdapter
+	fetcher     Fetcher
 	interval    time.Duration
 	startOffset time.Duration
 	workers     int
@@ -32,6 +33,7 @@ func NewService(
 	l *logger.Logger,
 	repo Repository,
 	paAdapter PolovniAutoAdapter,
+	fetcher Fetcher,
 	interval time.Duration,
 	startOffset time.Duration,
 	workers int,
@@ -40,6 +42,7 @@ func NewService(
 		l:           l,
 		repo:        repo,
 		paAdapter:   paAdapter,
+		fetcher:     fetcher,
 		interval:    interval,
 		startOffset: startOffset,
 		workers:     workers,
@@ -49,13 +52,21 @@ func NewService(
 
 // Start begins the scraping process.
 func (s *Service) Start(ctx context.Context) error {
+	// set chassis list in cache
+	chassis, err := s.fetcher.GetChassisFromJSON()
+	if err != nil {
+		return errors.Wrap(err, "failed to get chassis from json")
+	}
+
+	s.chassisList.SetBatch(chassis)
+
 	s.l.Info(fmt.Sprintf("scraper service will start after: %v, interval: %v", s.startOffset, s.interval))
 
 	// add a wait to not match the sending of notifications
 	time.Sleep(s.startOffset)
 	// to distinguish new listings from old ones,
 	// we save all listings in the database when we start the app
-	if err := s.ScrapeNewListings(ctx); err != nil {
+	if err = s.ScrapeNewListings(ctx); err != nil {
 		return err
 	}
 
@@ -69,7 +80,7 @@ func (s *Service) Start(ctx context.Context) error {
 			case <-ticker.C:
 				s.l.Info("scraper ticker ticked")
 
-				if err := s.ScrapeNewListings(ctx); err != nil {
+				if err = s.ScrapeNewListings(ctx); err != nil {
 					s.l.Error("failed to scrape new listings", logger.ErrAttr(err))
 				}
 			case <-ctx.Done():

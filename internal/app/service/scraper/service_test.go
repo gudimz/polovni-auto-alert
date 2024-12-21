@@ -22,6 +22,7 @@ type ServiceTestSuite struct {
 	ctrl             *gomock.Controller
 	mockRepo         *MockRepository
 	mockPpolovniAuto *MockPolovniAutoAdapter
+	mockFetcher      *MockFetcher
 	svc              *Service
 }
 
@@ -34,6 +35,7 @@ func (s *ServiceTestSuite) SetupTest() {
 		lg,
 		s.mockRepo,
 		s.mockPpolovniAuto,
+		s.mockFetcher,
 		10*time.Second,
 		0,
 		5,

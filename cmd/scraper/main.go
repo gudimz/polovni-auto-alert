@@ -9,6 +9,7 @@ import (
 	"github.com/kelseyhightower/envconfig"
 
 	"github.com/gudimz/polovni-auto-alert/internal/app/repository/psql/db"
+	"github.com/gudimz/polovni-auto-alert/internal/app/service/fetcher"
 	"github.com/gudimz/polovni-auto-alert/internal/app/service/scraper"
 	"github.com/gudimz/polovni-auto-alert/pkg/logger"
 	"github.com/gudimz/polovni-auto-alert/pkg/polovniauto"
@@ -56,10 +57,13 @@ func run() {
 	paCliCfg := polovniauto.NewConfig()
 	paCli := polovniauto.NewClient(l, paCliCfg)
 
+	fetch := fetcher.NewService(l, paCli)
+
 	svc := scraper.NewService(
 		l,
 		repo,
 		paCli,
+		fetch,
 		cfg.ScraperInterval,
 		cfg.ScraperStartOffset,
 		cfg.Workers,
@@ -80,5 +84,5 @@ func run() {
 
 	stop()
 
-	l.Info("service stopped gracefully")
+	l.Info("scraper service stopped gracefully")
 }

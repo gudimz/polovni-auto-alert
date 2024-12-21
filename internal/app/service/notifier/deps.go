@@ -17,4 +17,10 @@ type (
 		DeleteUserByID(ctx context.Context, id int64) error
 		DeleteSubscriptionByID(ctx context.Context, id string) error
 	}
+
+	Fetcher interface {
+		GetChassisFromJSON() (map[string]string, error)
+		GetRegionsFromJSON() (map[string]string, error)
+		GetCarsFromJSON() (map[string][]string, error)
+	}
 )

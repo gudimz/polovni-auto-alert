@@ -12,8 +12,9 @@ import (
 
 // Service represents the notification service.
 type Service struct {
-	l    *logger.Logger
-	repo Repository
+	l       *logger.Logger
+	repo    Repository
+	fetcher Fetcher
 	// TODO: add job for updating the cache
 	carsList    *cache.Storage[string, []string]
 	chassisList *cache.Storage[string, string]
@@ -21,14 +22,46 @@ type Service struct {
 }
 
 // NewService creates a new instance of the notification service.
-func NewService(l *logger.Logger, repo Repository) *Service {
+func NewService(l *logger.Logger, repo Repository, fetcher Fetcher) *Service {
 	return &Service{
 		l:           l,
 		repo:        repo,
+		fetcher:     fetcher,
 		carsList:    cache.New[string, []string](),
 		chassisList: cache.New[string, string](),
 		regionsList: cache.New[string, string](),
 	}
+}
+
+// Start begins the notification process.
+func (s *Service) Start() error {
+	// set cars list in cache
+	cars, err := s.fetcher.GetCarsFromJSON()
+	if err != nil {
+		return errors.Wrap(err, "failed to get cars from json")
+	}
+
+	s.carsList.SetBatch(cars)
+
+	// set chassis list in cache
+	chassis, err := s.fetcher.GetChassisFromJSON()
+	if err != nil {
+		return errors.Wrap(err, "failed to get chassis from json")
+	}
+
+	s.chassisList.SetBatch(chassis)
+
+	// set regions list in cache
+	regions, err := s.fetcher.GetRegionsFromJSON()
+	if err != nil {
+		return errors.Wrap(err, "failed to get regions from json")
+	}
+
+	s.regionsList.SetBatch(regions)
+
+	s.l.Info("notifier service started")
+
+	return nil
 }
 
 // UpsertUser creates or updates a user.

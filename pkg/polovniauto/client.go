@@ -15,8 +15,10 @@ import (
 	"time"
 
 	"github.com/PuerkitoBio/goquery"
+	"github.com/chromedp/chromedp"
 
 	"github.com/gudimz/polovni-auto-alert/pkg/logger"
+	"github.com/gudimz/polovni-auto-alert/pkg/utils"
 )
 
 type Client struct {
@@ -26,12 +28,19 @@ type Client struct {
 	httpClient *http.Client
 }
 
-var ErrUnexpectedStatusCode = errors.New("unexpected status code")
+var (
+	ErrUnexpectedStatusCode = errors.New("unexpected status code")
+)
 
-const maxRandomDelay = 3
+const (
+	urlPA = "https://www.polovniautomobili.com"
+
+	delay          = 1 * time.Second
+	maxRandomDelay = 3
+)
 
 func NewClient(l *logger.Logger, cfg *Config) *Client {
-	baseURL, _ := url.Parse("https://www.polovniautomobili.com")
+	baseURL, _ := url.Parse(urlPA)
 
 	return &Client{
 		l:          l,
@@ -91,6 +100,175 @@ func (c *Client) GetNewListings(ctx context.Context, params map[string]string) (
 	}
 
 	return allListings, nil
+}
+
+// GetCarsList retrieves the list of car brands and models.
+func (c *Client) GetCarsList(ctx context.Context) (map[string][]string, error) {
+	ctx, cancel := chromedp.NewRemoteAllocator(ctx, c.cfg.ChromeWSURL)
+	defer cancel()
+
+	ctxTask, taskCancel := chromedp.NewContext(ctx)
+	defer taskCancel()
+
+	c.l.Info("loading the site for cars list")
+
+	if err := chromedp.Run(
+		ctxTask,
+		chromedp.Navigate(urlPA),
+		chromedp.WaitVisible(`#brand`, chromedp.ByID), // wait for the brand list to load
+		chromedp.Sleep(delay),
+	); err != nil {
+		return nil, fmt.Errorf("error loading the site for cars list: %w", err)
+	}
+
+	var brands []map[string]string
+	if err := chromedp.Run(
+		ctxTask,
+		chromedp.Evaluate(`Array.from(document.querySelectorAll("#brand option"))
+        .map(option => ({ name: option.textContent.trim(), id: option.value }))`, &brands),
+	); err != nil {
+		return nil, fmt.Errorf("error getting brands for cars list: %w", err)
+	}
+
+	c.l.Debug(fmt.Sprintf("found the brands: %d", len(brands)))
+
+	modelsAndBrands := make(map[string][]string)
+
+	// iterate over brands and collect models for each
+	for _, brand := range brands {
+		if brand["id"] == "" {
+			continue
+		}
+
+		c.l.Debug("processing brand: " + brand["name"])
+
+		models := []string{}
+		if err := chromedp.Run(
+			ctxTask,
+			// clear the model list
+			chromedp.Evaluate(`document.querySelector("#model").innerHTML = ""`, nil),
+			// select the brand
+			chromedp.SetValue(`#brand`, brand["id"], chromedp.ByID),
+			// generate change event
+			chromedp.Evaluate(`document.querySelector("#brand").dispatchEvent(new Event('change'))`, nil),
+			// wait for models to load
+			chromedp.WaitNotPresent(`#model option`, chromedp.ByID),
+			// for stability
+			chromedp.Sleep(delay),
+			// get the models
+			chromedp.Evaluate(`Array.from(document.querySelectorAll("#model option"))
+            .map(option => option.value)
+            .filter(value => value !== "")`, &models),
+		); err != nil {
+			c.l.Error("error getting models", logger.ErrAttr(err), logger.StringAttr("brand", brand["name"]))
+			// Skip this brand if there was an error or no models found
+			continue
+		}
+
+		// skip if models are not found
+		if len(models) == 0 {
+			c.l.Warn("no models found", logger.StringAttr("brand", brand["name"]))
+			continue
+		}
+
+		uniqueModels := utils.RemoveDuplicates(models)
+		modelsAndBrands[brand["id"]] = uniqueModels
+		c.l.Debug(fmt.Sprintf("processed brand %s, found models: %d", brand["name"], len(uniqueModels)))
+	}
+
+	c.l.Info(fmt.Sprintf("found brands: %d and successfully finished", len(modelsAndBrands)))
+
+	return modelsAndBrands, nil
+}
+
+// GetCarChassisList retrieves the list of car body types.
+//
+//nolint:dupl,nolintlint
+func (c *Client) GetCarChassisList(ctx context.Context) (map[string]string, error) {
+	ctx, cancel := chromedp.NewRemoteAllocator(ctx, c.cfg.ChromeWSURL)
+	defer cancel()
+
+	ctxTask, taskCancel := chromedp.NewContext(ctx)
+	defer taskCancel()
+
+	c.l.Info("loading the site for car chassis list")
+
+	if err := chromedp.Run(
+		ctxTask,
+		chromedp.Navigate(urlPA),
+		chromedp.WaitReady(`#brand`, chromedp.ByID),
+		chromedp.Sleep(delay),
+	); err != nil {
+		return nil, fmt.Errorf("error loading the site: %w", err)
+	}
+
+	// collect chassis types
+	var chassisTypes map[string]string
+	if err := chromedp.Run(
+		ctxTask,
+		chromedp.Evaluate(`
+			(function() {
+				const result = {};
+				document.querySelectorAll('#chassis option').forEach(option => {
+					if (option.value) {
+						result[option.textContent.trim()] = option.value;
+					}
+				});
+				return result;
+			})()
+		`, &chassisTypes),
+	); err != nil {
+		return nil, fmt.Errorf("error getting chassis types: %w", err)
+	}
+
+	c.l.Info(fmt.Sprintf("found chassis types: %d and success finished", len(chassisTypes)))
+
+	return chassisTypes, nil
+}
+
+// GetRegionsList retrieves the list of regions.
+//
+//nolint:dupl,nolintlint
+func (c *Client) GetRegionsList(ctx context.Context) (map[string]string, error) {
+	ctx, cancel := chromedp.NewRemoteAllocator(ctx, c.cfg.ChromeWSURL)
+	defer cancel()
+
+	ctxTask, taskCancel := chromedp.NewContext(ctx)
+	defer taskCancel()
+
+	c.l.Info("loading the site for regions list")
+
+	if err := chromedp.Run(
+		ctxTask,
+		chromedp.Navigate(urlPA),
+		chromedp.WaitVisible("#region", chromedp.ByID), // wait for the region list to load
+		chromedp.Sleep(delay),
+	); err != nil {
+		return nil, fmt.Errorf("error loading the site: %w", err)
+	}
+
+	// collect regions
+	var regions map[string]string
+	if err := chromedp.Run(
+		ctxTask,
+		chromedp.Evaluate(`
+			(function() {
+				const regions = {};
+				document.querySelectorAll('#region option').forEach(option => {
+					if (option.value && !/^\d+$/.test(option.value)) {
+						regions[option.textContent.trim()] = option.value;
+					}
+				});
+				return regions;
+			})()
+		`, &regions),
+	); err != nil {
+		return nil, fmt.Errorf("error getting regions: %w", err)
+	}
+
+	c.l.Info(fmt.Sprintf("found regions: %d and success finished", len(regions)))
+
+	return regions, nil
 }
 
 // buildURL constructs the URL with query parameters.
