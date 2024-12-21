@@ -30,10 +30,6 @@ install-sqlc:
 sqlc: install-sqlc
 	@$(shell go env GOPATH)/bin/sqlc generate -f $(SQLC_PATH)
 
-.PHONY: mock
-mock:
-	@go generate ./...
-
 # linter
 .PHONY: install-lint
 install-lint:
@@ -47,7 +43,7 @@ lint: install-lint
 	$(GOLANGCI_LINT_BIN) run ./... --config=./configs/golangci.yml
 
 .PHONY: generate
-generate: sqlc mock
+generate: sqlc
 
 .PHONY: test
 test:

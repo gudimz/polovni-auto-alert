@@ -41,170 +41,102 @@ func (m *MockRepository) EXPECT() *MockRepositoryMockRecorder {
 }
 
 // CreateSubscription mocks base method.
-func (m *MockRepository) CreateSubscription(arg0 context.Context, arg1 ds.SubscriptionRequest) (ds.SubscriptionResponse, error) {
+func (m *MockRepository) CreateSubscription(ctx context.Context, sub ds.SubscriptionRequest) (ds.SubscriptionResponse, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "CreateSubscription", arg0, arg1)
+	ret := m.ctrl.Call(m, "CreateSubscription", ctx, sub)
 	ret0, _ := ret[0].(ds.SubscriptionResponse)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // CreateSubscription indicates an expected call of CreateSubscription.
-func (mr *MockRepositoryMockRecorder) CreateSubscription(arg0, arg1 any) *gomock.Call {
+func (mr *MockRepositoryMockRecorder) CreateSubscription(ctx, sub any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateSubscription", reflect.TypeOf((*MockRepository)(nil).CreateSubscription), arg0, arg1)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateSubscription", reflect.TypeOf((*MockRepository)(nil).CreateSubscription), ctx, sub)
 }
 
 // DeleteListingsBySubscriptionIDs mocks base method.
-func (m *MockRepository) DeleteListingsBySubscriptionIDs(arg0 context.Context, arg1 []string) error {
+func (m *MockRepository) DeleteListingsBySubscriptionIDs(ctx context.Context, ids []string) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "DeleteListingsBySubscriptionIDs", arg0, arg1)
+	ret := m.ctrl.Call(m, "DeleteListingsBySubscriptionIDs", ctx, ids)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // DeleteListingsBySubscriptionIDs indicates an expected call of DeleteListingsBySubscriptionIDs.
-func (mr *MockRepositoryMockRecorder) DeleteListingsBySubscriptionIDs(arg0, arg1 any) *gomock.Call {
+func (mr *MockRepositoryMockRecorder) DeleteListingsBySubscriptionIDs(ctx, ids any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteListingsBySubscriptionIDs", reflect.TypeOf((*MockRepository)(nil).DeleteListingsBySubscriptionIDs), arg0, arg1)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteListingsBySubscriptionIDs", reflect.TypeOf((*MockRepository)(nil).DeleteListingsBySubscriptionIDs), ctx, ids)
 }
 
 // DeleteSubscriptionByID mocks base method.
-func (m *MockRepository) DeleteSubscriptionByID(arg0 context.Context, arg1 string) error {
+func (m *MockRepository) DeleteSubscriptionByID(ctx context.Context, id string) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "DeleteSubscriptionByID", arg0, arg1)
+	ret := m.ctrl.Call(m, "DeleteSubscriptionByID", ctx, id)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // DeleteSubscriptionByID indicates an expected call of DeleteSubscriptionByID.
-func (mr *MockRepositoryMockRecorder) DeleteSubscriptionByID(arg0, arg1 any) *gomock.Call {
+func (mr *MockRepositoryMockRecorder) DeleteSubscriptionByID(ctx, id any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteSubscriptionByID", reflect.TypeOf((*MockRepository)(nil).DeleteSubscriptionByID), arg0, arg1)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteSubscriptionByID", reflect.TypeOf((*MockRepository)(nil).DeleteSubscriptionByID), ctx, id)
 }
 
 // DeleteSubscriptionsByUserID mocks base method.
-func (m *MockRepository) DeleteSubscriptionsByUserID(arg0 context.Context, arg1 int64) error {
+func (m *MockRepository) DeleteSubscriptionsByUserID(ctx context.Context, userID int64) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "DeleteSubscriptionsByUserID", arg0, arg1)
+	ret := m.ctrl.Call(m, "DeleteSubscriptionsByUserID", ctx, userID)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // DeleteSubscriptionsByUserID indicates an expected call of DeleteSubscriptionsByUserID.
-func (mr *MockRepositoryMockRecorder) DeleteSubscriptionsByUserID(arg0, arg1 any) *gomock.Call {
+func (mr *MockRepositoryMockRecorder) DeleteSubscriptionsByUserID(ctx, userID any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteSubscriptionsByUserID", reflect.TypeOf((*MockRepository)(nil).DeleteSubscriptionsByUserID), arg0, arg1)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteSubscriptionsByUserID", reflect.TypeOf((*MockRepository)(nil).DeleteSubscriptionsByUserID), ctx, userID)
 }
 
 // DeleteUserByID mocks base method.
-func (m *MockRepository) DeleteUserByID(arg0 context.Context, arg1 int64) error {
+func (m *MockRepository) DeleteUserByID(ctx context.Context, id int64) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "DeleteUserByID", arg0, arg1)
+	ret := m.ctrl.Call(m, "DeleteUserByID", ctx, id)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // DeleteUserByID indicates an expected call of DeleteUserByID.
-func (mr *MockRepositoryMockRecorder) DeleteUserByID(arg0, arg1 any) *gomock.Call {
+func (mr *MockRepositoryMockRecorder) DeleteUserByID(ctx, id any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteUserByID", reflect.TypeOf((*MockRepository)(nil).DeleteUserByID), arg0, arg1)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteUserByID", reflect.TypeOf((*MockRepository)(nil).DeleteUserByID), ctx, id)
 }
 
 // GetSubscriptionsByUserID mocks base method.
-func (m *MockRepository) GetSubscriptionsByUserID(arg0 context.Context, arg1 int64) ([]ds.SubscriptionResponse, error) {
+func (m *MockRepository) GetSubscriptionsByUserID(ctx context.Context, userID int64) ([]ds.SubscriptionResponse, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetSubscriptionsByUserID", arg0, arg1)
+	ret := m.ctrl.Call(m, "GetSubscriptionsByUserID", ctx, userID)
 	ret0, _ := ret[0].([]ds.SubscriptionResponse)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // GetSubscriptionsByUserID indicates an expected call of GetSubscriptionsByUserID.
-func (mr *MockRepositoryMockRecorder) GetSubscriptionsByUserID(arg0, arg1 any) *gomock.Call {
+func (mr *MockRepositoryMockRecorder) GetSubscriptionsByUserID(ctx, userID any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetSubscriptionsByUserID", reflect.TypeOf((*MockRepository)(nil).GetSubscriptionsByUserID), arg0, arg1)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetSubscriptionsByUserID", reflect.TypeOf((*MockRepository)(nil).GetSubscriptionsByUserID), ctx, userID)
 }
 
 // UpsertUser mocks base method.
-func (m *MockRepository) UpsertUser(arg0 context.Context, arg1 ds.UserRequest) (ds.UserResponse, error) {
+func (m *MockRepository) UpsertUser(ctx context.Context, request ds.UserRequest) (ds.UserResponse, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "UpsertUser", arg0, arg1)
+	ret := m.ctrl.Call(m, "UpsertUser", ctx, request)
 	ret0, _ := ret[0].(ds.UserResponse)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // UpsertUser indicates an expected call of UpsertUser.
-func (mr *MockRepositoryMockRecorder) UpsertUser(arg0, arg1 any) *gomock.Call {
+func (mr *MockRepositoryMockRecorder) UpsertUser(ctx, request any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpsertUser", reflect.TypeOf((*MockRepository)(nil).UpsertUser), arg0, arg1)
-}
-
-// MockPolovniAutoAdapter is a mock of PolovniAutoAdapter interface.
-type MockPolovniAutoAdapter struct {
-	ctrl     *gomock.Controller
-	recorder *MockPolovniAutoAdapterMockRecorder
-}
-
-// MockPolovniAutoAdapterMockRecorder is the mock recorder for MockPolovniAutoAdapter.
-type MockPolovniAutoAdapterMockRecorder struct {
-	mock *MockPolovniAutoAdapter
-}
-
-// NewMockPolovniAutoAdapter creates a new mock instance.
-func NewMockPolovniAutoAdapter(ctrl *gomock.Controller) *MockPolovniAutoAdapter {
-	mock := &MockPolovniAutoAdapter{ctrl: ctrl}
-	mock.recorder = &MockPolovniAutoAdapterMockRecorder{mock}
-	return mock
-}
-
-// EXPECT returns an object that allows the caller to indicate expected use.
-func (m *MockPolovniAutoAdapter) EXPECT() *MockPolovniAutoAdapterMockRecorder {
-	return m.recorder
-}
-
-// GetCarChassisList mocks base method.
-func (m *MockPolovniAutoAdapter) GetCarChassisList(arg0 context.Context) (map[string]string, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetCarChassisList", arg0)
-	ret0, _ := ret[0].(map[string]string)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// GetCarChassisList indicates an expected call of GetCarChassisList.
-func (mr *MockPolovniAutoAdapterMockRecorder) GetCarChassisList(arg0 any) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetCarChassisList", reflect.TypeOf((*MockPolovniAutoAdapter)(nil).GetCarChassisList), arg0)
-}
-
-// GetCarsList mocks base method.
-func (m *MockPolovniAutoAdapter) GetCarsList(arg0 context.Context) (map[string][]string, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetCarsList", arg0)
-	ret0, _ := ret[0].(map[string][]string)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// GetCarsList indicates an expected call of GetCarsList.
-func (mr *MockPolovniAutoAdapterMockRecorder) GetCarsList(arg0 any) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetCarsList", reflect.TypeOf((*MockPolovniAutoAdapter)(nil).GetCarsList), arg0)
-}
-
-// GetRegionsList mocks base method.
-func (m *MockPolovniAutoAdapter) GetRegionsList(arg0 context.Context) (map[string]string, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetRegionsList", arg0)
-	ret0, _ := ret[0].(map[string]string)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// GetRegionsList indicates an expected call of GetRegionsList.
-func (mr *MockPolovniAutoAdapterMockRecorder) GetRegionsList(arg0 any) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetRegionsList", reflect.TypeOf((*MockPolovniAutoAdapter)(nil).GetRegionsList), arg0)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpsertUser", reflect.TypeOf((*MockRepository)(nil).UpsertUser), ctx, request)
 }

@@ -19,31 +19,28 @@ var errCommon = errors.New("common error")
 
 type ServiceTestSuite struct {
 	suite.Suite
-	ctrl     *gomock.Controller
-	mockRepo *MockRepository
-	mockPA   *MockPolovniAutoAdapter
-	svc      *Service
+	ctrl             *gomock.Controller
+	mockRepo         *MockRepository
+	mockPpolovniAuto *MockPolovniAutoAdapter
+	svc              *Service
 }
 
 func (s *ServiceTestSuite) SetupTest() {
 	s.ctrl = gomock.NewController(s.T())
 	lg := logger.NewLogger()
 	s.mockRepo = NewMockRepository(s.ctrl)
-	s.mockPA = NewMockPolovniAutoAdapter(s.ctrl)
-
+	s.mockPpolovniAuto = NewMockPolovniAutoAdapter(s.ctrl)
 	s.svc = NewService(
 		lg,
 		s.mockRepo,
-		s.mockPA,
+		s.mockPpolovniAuto,
 		10*time.Second,
 		0,
 		5,
-	)
-
-	s.svc.carChassisList.SetBatch(map[string]string{
-		"Limuzina": "277",
-		"Pickup":   "2635",
-	})
+		map[string]string{
+			"Limuzina": "277",
+			"Pickup":   "2635",
+		})
 }
 
 func (s *ServiceTestSuite) TearDownTest() {
@@ -77,7 +74,7 @@ func (s *ServiceTestSuite) TestService_ScrapeAllListings() {
 						},
 					}, nil).
 					Times(1)
-				s.mockPA.EXPECT().GetNewListings(gomock.Any(), map[string]string{
+				s.mockPpolovniAuto.EXPECT().GetNewListings(gomock.Any(), map[string]string{
 					"brand":      "bmw",
 					"model[]":    "m3,m5",
 					"price_from": "1000",
@@ -133,7 +130,7 @@ func (s *ServiceTestSuite) TestService_ScrapeAllListings() {
 						},
 					}, nil).
 					Times(1)
-				s.mockPA.EXPECT().GetNewListings(gomock.Any(), map[string]string{
+				s.mockPpolovniAuto.EXPECT().GetNewListings(gomock.Any(), map[string]string{
 					"brand":      "bmw",
 					"model[]":    "m3,m5",
 					"price_from": "1000",
@@ -172,7 +169,7 @@ func (s *ServiceTestSuite) TestService_ScrapeAllListings() {
 						},
 					}, nil).
 					Times(1)
-				s.mockPA.EXPECT().GetNewListings(gomock.Any(), map[string]string{
+				s.mockPpolovniAuto.EXPECT().GetNewListings(gomock.Any(), map[string]string{
 					"brand":      "bmw",
 					"model[]":    "m3,m5",
 					"price_from": "1000",
@@ -203,7 +200,7 @@ func (s *ServiceTestSuite) TestService_ScrapeAllListings() {
 						},
 					}, nil).
 					Times(1)
-				s.mockPA.EXPECT().GetNewListings(gomock.Any(), map[string]string{
+				s.mockPpolovniAuto.EXPECT().GetNewListings(gomock.Any(), map[string]string{
 					"brand":      "bmw",
 					"model[]":    "m3,m5",
 					"price_from": "1000",
@@ -286,7 +283,7 @@ func (s *ServiceTestSuite) TestService_ScrapeNewListings() {
 						},
 					}, nil).
 					Times(1)
-				s.mockPA.EXPECT().GetNewListings(gomock.Any(), map[string]string{
+				s.mockPpolovniAuto.EXPECT().GetNewListings(gomock.Any(), map[string]string{
 					"brand":      "bmw",
 					"model[]":    "m3,m5",
 					"price_from": "1000",
@@ -363,7 +360,7 @@ func (s *ServiceTestSuite) TestService_ScrapeNewListings() {
 						},
 					}, nil).
 					Times(1)
-				s.mockPA.EXPECT().GetNewListings(gomock.Any(), map[string]string{
+				s.mockPpolovniAuto.EXPECT().GetNewListings(gomock.Any(), map[string]string{
 					"brand":      "bmw",
 					"model[]":    "m3,m5",
 					"price_from": "1000",
@@ -395,7 +392,7 @@ func (s *ServiceTestSuite) TestService_ScrapeNewListings() {
 						},
 					}, nil).
 					Times(1)
-				s.mockPA.EXPECT().GetNewListings(gomock.Any(), map[string]string{
+				s.mockPpolovniAuto.EXPECT().GetNewListings(gomock.Any(), map[string]string{
 					"brand":      "bmw",
 					"model[]":    "m3,m5",
 					"price_from": "1000",
@@ -456,7 +453,7 @@ func (s *ServiceTestSuite) TestService_ScrapeNewListings() {
 						},
 					}, nil).
 					Times(1)
-				s.mockPA.EXPECT().GetNewListings(gomock.Any(), map[string]string{
+				s.mockPpolovniAuto.EXPECT().GetNewListings(gomock.Any(), map[string]string{
 					"brand":      "bmw",
 					"model[]":    "m3,m5",
 					"price_from": "1000",
@@ -489,7 +486,7 @@ func (s *ServiceTestSuite) TestService_ScrapeNewListings() {
 						},
 					}, nil).
 					Times(1)
-				s.mockPA.EXPECT().GetNewListings(gomock.Any(), map[string]string{
+				s.mockPpolovniAuto.EXPECT().GetNewListings(gomock.Any(), map[string]string{
 					"brand":      "bmw",
 					"model[]":    "m3,m5",
 					"price_from": "1000",
@@ -539,7 +536,7 @@ func (s *ServiceTestSuite) TestService_ScrapeNewListings() {
 						},
 					}, nil).
 					Times(1)
-				s.mockPA.EXPECT().GetNewListings(gomock.Any(), map[string]string{
+				s.mockPpolovniAuto.EXPECT().GetNewListings(gomock.Any(), map[string]string{
 					"brand":      "bmw",
 					"model[]":    "m3,m5",
 					"price_from": "1000",
@@ -611,72 +608,6 @@ func (s *ServiceTestSuite) TestService_ScrapeNewListings() {
 			}
 
 			cancel()
-		})
-	}
-}
-
-func (s *ServiceTestSuite) TestService_UpdateCarChassisList() {
-	testCases := []struct {
-		name      string
-		mock      func()
-		want      map[string]string
-		expectErr error
-	}{
-		{
-			name: "empty list",
-			mock: func() {
-				s.mockPA.EXPECT().GetCarChassisList(gomock.Any()).
-					Return(map[string]string{}, nil).
-					Times(1)
-			},
-			want: map[string]string{ // no changes
-				"Limuzina": "277",
-				"Pickup":   "2635",
-			},
-		},
-		{
-			name: "success",
-			mock: func() {
-				s.mockPA.EXPECT().GetCarChassisList(gomock.Any()).
-					Return(map[string]string{
-						"Karavan": "278",
-						"Kupe":    "2633",
-					}, nil).
-					Times(1)
-			},
-			want: map[string]string{
-				"Karavan": "278",
-				"Kupe":    "2633",
-			},
-		},
-		{
-			name: "failed: common error",
-			mock: func() {
-				s.mockPA.EXPECT().GetCarChassisList(gomock.Any()).
-					Return(nil, errCommon).
-					Times(1)
-			},
-			expectErr: errCommon,
-		},
-	}
-
-	for _, tc := range testCases {
-		s.Run(tc.name, func() {
-			tc.mock()
-
-			ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
-			defer cancel()
-
-			err := s.svc.UpdateCarChassisList(ctx)
-
-			switch {
-			case tc.expectErr != nil:
-				s.Require().Error(err)
-				s.Require().ErrorIs(err, tc.expectErr, "expected error: %v, got: %v", tc.expectErr, err)
-			default:
-				s.Require().NoError(err)
-				s.Require().Equal(tc.want, s.svc.carChassisList.CopyMap())
-			}
 		})
 	}
 }

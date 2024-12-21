@@ -11,38 +11,38 @@ import (
 	"github.com/pkg/errors"
 
 	"github.com/gudimz/polovni-auto-alert/internal/pkg/ds"
-	cache "github.com/gudimz/polovni-auto-alert/pkg/in_memory_storage"
 	"github.com/gudimz/polovni-auto-alert/pkg/logger"
 	"github.com/gudimz/polovni-auto-alert/pkg/polovniauto"
 )
 
 type Service struct {
-	l              *logger.Logger
-	repo           Repository
-	pa             PolovniAutoAdapter
-	interval       time.Duration
-	startOffset    time.Duration
-	workers        int
-	carChassisList *cache.Storage[string, string]
+	l           *logger.Logger
+	repo        Repository
+	paAdapter   PolovniAutoAdapter
+	interval    time.Duration
+	startOffset time.Duration
+	workers     int
+	chassisList map[string]string
 }
 
 // NewService creates a new Scraper Service instance.
 func NewService(
 	l *logger.Logger,
 	repo Repository,
-	pa PolovniAutoAdapter,
+	paAdapter PolovniAutoAdapter,
 	interval time.Duration,
 	startOffset time.Duration,
 	workers int,
+	chassis map[string]string,
 ) *Service {
 	return &Service{
-		l:              l,
-		repo:           repo,
-		pa:             pa,
-		interval:       interval,
-		startOffset:    startOffset,
-		workers:        workers,
-		carChassisList: cache.New[string, string](),
+		l:           l,
+		repo:        repo,
+		paAdapter:   paAdapter,
+		interval:    interval,
+		startOffset: startOffset,
+		workers:     workers,
+		chassisList: chassis,
 	}
 }
 
@@ -133,23 +133,6 @@ func (s *Service) ScrapeNewListings(ctx context.Context) error {
 	}
 
 	s.l.Info("scraped new listings successfully")
-
-	return nil
-}
-
-// UpdateCarChassisList updates the list of car body types.
-func (s *Service) UpdateCarChassisList(ctx context.Context) error {
-	chassisList, err := s.pa.GetCarChassisList(ctx)
-	if err != nil {
-		s.l.Error("failed to get chassis list in scrapper", logger.ErrAttr(err))
-		return errors.Wrap(err, "failed to get chassis list")
-	}
-
-	// replace the old list with the new one
-	if len(chassisList) != 0 {
-		s.carChassisList.Replace(chassisList)
-		s.l.Info("updating car chassis list in scrapper")
-	}
 
 	return nil
 }
@@ -295,7 +278,7 @@ func (s *Service) scrapeNewListings(ctx context.Context, sub ds.SubscriptionResp
 func (s *Service) scrape(ctx context.Context, params map[string]string) ([]polovniauto.Listing, error) {
 	s.l.Info("scraping started")
 
-	listings, err := s.pa.GetNewListings(ctx, params)
+	listings, err := s.paAdapter.GetNewListings(ctx, params)
 	if err != nil {
 		return []polovniauto.Listing{}, errors.Wrap(err, "failed to get new listings")
 	}
@@ -338,9 +321,8 @@ func (s *Service) subscriptionToParams(subscription ds.SubscriptionResponse) map
 	if len(subscription.Chassis) > 0 {
 		var mappedChassis []string
 
-		// map chassis names to IDs
 		for _, chassisName := range subscription.Chassis {
-			if chassisID, exists := s.carChassisList.Get(chassisName); exists {
+			if chassisID, exists := s.chassisList[chassisName]; exists {
 				mappedChassis = append(mappedChassis, chassisID)
 			}
 		}

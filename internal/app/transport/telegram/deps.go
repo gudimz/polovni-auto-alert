@@ -13,20 +13,19 @@ type (
 	TgBot interface {
 		GetAPI() *tgbotapi.BotAPI
 		GetCfg() *telegram.Config
-		SendMessage(tgbotapi.Chattable) (tgbotapi.Message, error)
-		SetCommands([]tgbotapi.BotCommand) error
+		SendMessage(c tgbotapi.Chattable) (tgbotapi.Message, error)
+		SetCommands(commands []tgbotapi.BotCommand) error
 	}
 
 	Service interface {
-		RemoveAllSubscriptionsByUserID(context.Context, int64 /*userID*/) error
-		RemoveSubscriptionByID(context.Context, string /*id*/) error
-		CreateSubscription(context.Context, ds.SubscriptionRequest) (ds.SubscriptionResponse, error)
-		GetAllSubscriptionsByUserID(context.Context, int64 /*userID*/) ([]ds.SubscriptionResponse, error)
-		UpsertUser(context.Context, ds.UserRequest) (ds.UserResponse, error)
+		RemoveAllSubscriptionsByUserID(ctx context.Context, userID int64) error
+		RemoveSubscriptionByID(ctx context.Context, id string) error
+		CreateSubscription(ctx context.Context, subscription ds.SubscriptionRequest) (ds.SubscriptionResponse, error)
+		GetAllSubscriptionsByUserID(ctx context.Context, userID int64) ([]ds.SubscriptionResponse, error)
+		UpsertUser(ctx context.Context, user ds.UserRequest) (ds.UserResponse, error)
 
-		GetCarBrandsList() []string
-		GetCarModelsList(string /*brand*/) ([]string, bool)
-		GetCarChassisList() map[string]string
+		GetCarsList() map[string][]string
+		GetChassisList() map[string]string
 		GetRegionsList() map[string]string
 	}
 )
