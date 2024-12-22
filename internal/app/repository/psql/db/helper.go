@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/guregu/null"
 	"github.com/jackc/pgx/v5/pgtype"
 
 	psql "github.com/gudimz/polovni-auto-alert/internal/app/repository/psql/db/sqlc_gen"
@@ -87,6 +88,7 @@ func listingToDB(input ds.UpsertListingRequest) (psql.UpsertListingParams, error
 		SubscriptionID: subscriptionID,
 		Title:          input.Title,
 		Price:          input.Price,
+		NewPrice:       pgtype.Text{String: input.NewPrice.String, Valid: input.NewPrice.Valid},
 		EngineVolume:   input.EngineVolume,
 		Transmission:   input.Transmission,
 		BodyType:       input.BodyType,
@@ -98,8 +100,10 @@ func listingToDB(input ds.UpsertListingRequest) (psql.UpsertListingParams, error
 	}, nil
 }
 
-// listingFromDB converts a ds.UpsertListingRequest to psql.UpsertListingParams.
-func listingFromDB(input psql.Listing) (ds.ListingResponse, error) {
+// listingFromListingsBySubscriptionIDDB converts a psql.GetListingsBySubscriptionIDRow to ds.ListingResponse.
+//
+//nolint:dupl,nolintlint
+func listingFromListingsBySubscriptionIDDB(input psql.GetListingsBySubscriptionIDRow) (ds.ListingResponse, error) {
 	id, err := pgUUIDToString(input.ID)
 	if err != nil {
 		return ds.ListingResponse{}, err
@@ -116,6 +120,41 @@ func listingFromDB(input psql.Listing) (ds.ListingResponse, error) {
 		SubscriptionID: subscriptionID,
 		Title:          input.Title,
 		Price:          input.Price,
+		NewPrice:       null.NewString(input.NewPrice.String, input.NewPrice.Valid),
+		EngineVolume:   input.EngineVolume,
+		Transmission:   input.Transmission,
+		BodyType:       input.BodyType,
+		Mileage:        input.Mileage,
+		Location:       input.Location,
+		Link:           input.Link,
+		Date:           input.Date.Time,
+		IsNeedSend:     input.IsNeedSend,
+		CreatedAt:      input.CreatedAt.Time,
+		UpdatedAt:      input.UpdatedAt.Time,
+	}, nil
+}
+
+// listingFromListingsByIsNeedSendDB converts a psql.GetListingsByIsNeedSendRow to ds.ListingResponse.
+//
+//nolint:dupl,nolintlint
+func listingFromListingsByIsNeedSendDB(input psql.GetListingsByIsNeedSendRow) (ds.ListingResponse, error) {
+	id, err := pgUUIDToString(input.ID)
+	if err != nil {
+		return ds.ListingResponse{}, err
+	}
+
+	subscriptionID, err := pgUUIDToString(input.SubscriptionID)
+	if err != nil {
+		return ds.ListingResponse{}, err
+	}
+
+	return ds.ListingResponse{
+		ID:             id,
+		ListingID:      input.ListingID,
+		SubscriptionID: subscriptionID,
+		Title:          input.Title,
+		Price:          input.Price,
+		NewPrice:       null.NewString(input.NewPrice.String, input.NewPrice.Valid),
 		EngineVolume:   input.EngineVolume,
 		Transmission:   input.Transmission,
 		BodyType:       input.BodyType,

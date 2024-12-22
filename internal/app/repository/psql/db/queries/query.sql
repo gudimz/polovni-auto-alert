@@ -43,11 +43,12 @@ VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, now(), now())
 RETURNING *;
 
 -- name: UpsertListing :exec
-INSERT INTO listings (listing_id, subscription_id, title, price, engine_volume, transmission, body_type, mileage, location,
+INSERT INTO listings (listing_id, subscription_id, title, price, new_price, engine_volume, transmission, body_type, mileage, location,
                       link, date, is_need_send, created_at, updated_at)
-VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, now(), now())
+VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, now(), now())
 ON CONFLICT (listing_id, subscription_id) DO UPDATE SET title         = EXCLUDED.title,
                                                 price         = EXCLUDED.price,
+                                                new_price     = EXCLUDED.new_price,
                                                 engine_volume = EXCLUDED.engine_volume,
                                                 transmission  = EXCLUDED.transmission,
                                                 body_type     = EXCLUDED.body_type,
@@ -65,6 +66,7 @@ SELECT id,
        subscription_id,
        title,
        price,
+       new_price,
        engine_volume,
        transmission,
        body_type,
@@ -84,6 +86,7 @@ SELECT id,
        subscription_id,
        title,
        price,
+       new_price,
        engine_volume,
        transmission,
        body_type,

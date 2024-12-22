@@ -206,6 +206,7 @@ SELECT id,
        subscription_id,
        title,
        price,
+       new_price,
        engine_volume,
        transmission,
        body_type,
@@ -220,21 +221,41 @@ FROM listings
 WHERE is_need_send = $1
 `
 
-func (q *Queries) GetListingsByIsNeedSend(ctx context.Context, isNeedSend bool) ([]Listing, error) {
+type GetListingsByIsNeedSendRow struct {
+	ID             pgtype.UUID      `json:"id"`
+	ListingID      string           `json:"listing_id"`
+	SubscriptionID pgtype.UUID      `json:"subscription_id"`
+	Title          string           `json:"title"`
+	Price          string           `json:"price"`
+	NewPrice       pgtype.Text      `json:"new_price"`
+	EngineVolume   string           `json:"engine_volume"`
+	Transmission   string           `json:"transmission"`
+	BodyType       string           `json:"body_type"`
+	Mileage        string           `json:"mileage"`
+	Location       string           `json:"location"`
+	Link           string           `json:"link"`
+	Date           pgtype.Timestamp `json:"date"`
+	IsNeedSend     bool             `json:"is_need_send"`
+	CreatedAt      pgtype.Timestamp `json:"created_at"`
+	UpdatedAt      pgtype.Timestamp `json:"updated_at"`
+}
+
+func (q *Queries) GetListingsByIsNeedSend(ctx context.Context, isNeedSend bool) ([]GetListingsByIsNeedSendRow, error) {
 	rows, err := q.db.Query(ctx, GetListingsByIsNeedSend, isNeedSend)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
-	items := []Listing{}
+	items := []GetListingsByIsNeedSendRow{}
 	for rows.Next() {
-		var i Listing
+		var i GetListingsByIsNeedSendRow
 		if err := rows.Scan(
 			&i.ID,
 			&i.ListingID,
 			&i.SubscriptionID,
 			&i.Title,
 			&i.Price,
+			&i.NewPrice,
 			&i.EngineVolume,
 			&i.Transmission,
 			&i.BodyType,
@@ -262,6 +283,7 @@ SELECT id,
        subscription_id,
        title,
        price,
+       new_price,
        engine_volume,
        transmission,
        body_type,
@@ -276,21 +298,41 @@ FROM listings
 WHERE subscription_id = $1
 `
 
-func (q *Queries) GetListingsBySubscriptionID(ctx context.Context, subscriptionID pgtype.UUID) ([]Listing, error) {
+type GetListingsBySubscriptionIDRow struct {
+	ID             pgtype.UUID      `json:"id"`
+	ListingID      string           `json:"listing_id"`
+	SubscriptionID pgtype.UUID      `json:"subscription_id"`
+	Title          string           `json:"title"`
+	Price          string           `json:"price"`
+	NewPrice       pgtype.Text      `json:"new_price"`
+	EngineVolume   string           `json:"engine_volume"`
+	Transmission   string           `json:"transmission"`
+	BodyType       string           `json:"body_type"`
+	Mileage        string           `json:"mileage"`
+	Location       string           `json:"location"`
+	Link           string           `json:"link"`
+	Date           pgtype.Timestamp `json:"date"`
+	IsNeedSend     bool             `json:"is_need_send"`
+	CreatedAt      pgtype.Timestamp `json:"created_at"`
+	UpdatedAt      pgtype.Timestamp `json:"updated_at"`
+}
+
+func (q *Queries) GetListingsBySubscriptionID(ctx context.Context, subscriptionID pgtype.UUID) ([]GetListingsBySubscriptionIDRow, error) {
 	rows, err := q.db.Query(ctx, GetListingsBySubscriptionID, subscriptionID)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
-	items := []Listing{}
+	items := []GetListingsBySubscriptionIDRow{}
 	for rows.Next() {
-		var i Listing
+		var i GetListingsBySubscriptionIDRow
 		if err := rows.Scan(
 			&i.ID,
 			&i.ListingID,
 			&i.SubscriptionID,
 			&i.Title,
 			&i.Price,
+			&i.NewPrice,
 			&i.EngineVolume,
 			&i.Transmission,
 			&i.BodyType,
@@ -400,11 +442,12 @@ func (q *Queries) GetSubscriptionsByUserID(ctx context.Context, userID int64) ([
 }
 
 const UpsertListing = `-- name: UpsertListing :exec
-INSERT INTO listings (listing_id, subscription_id, title, price, engine_volume, transmission, body_type, mileage, location,
+INSERT INTO listings (listing_id, subscription_id, title, price, new_price, engine_volume, transmission, body_type, mileage, location,
                       link, date, is_need_send, created_at, updated_at)
-VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, now(), now())
+VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, now(), now())
 ON CONFLICT (listing_id, subscription_id) DO UPDATE SET title         = EXCLUDED.title,
                                                 price         = EXCLUDED.price,
+                                                new_price     = EXCLUDED.new_price,
                                                 engine_volume = EXCLUDED.engine_volume,
                                                 transmission  = EXCLUDED.transmission,
                                                 body_type     = EXCLUDED.body_type,
@@ -414,7 +457,7 @@ ON CONFLICT (listing_id, subscription_id) DO UPDATE SET title         = EXCLUDED
                                                 date          = EXCLUDED.date,
                                                 is_need_send  = EXCLUDED.is_need_send,
                                                 updated_at    = now()
-RETURNING id, listing_id, subscription_id, title, price, engine_volume, transmission, body_type, mileage, location, link, date, is_need_send, created_at, updated_at
+RETURNING id, listing_id, subscription_id, title, price, engine_volume, transmission, body_type, mileage, location, link, date, is_need_send, created_at, updated_at, new_price
 `
 
 type UpsertListingParams struct {
@@ -422,6 +465,7 @@ type UpsertListingParams struct {
 	SubscriptionID pgtype.UUID      `json:"subscription_id"`
 	Title          string           `json:"title"`
 	Price          string           `json:"price"`
+	NewPrice       pgtype.Text      `json:"new_price"`
 	EngineVolume   string           `json:"engine_volume"`
 	Transmission   string           `json:"transmission"`
 	BodyType       string           `json:"body_type"`
@@ -438,6 +482,7 @@ func (q *Queries) UpsertListing(ctx context.Context, arg UpsertListingParams) er
 		arg.SubscriptionID,
 		arg.Title,
 		arg.Price,
+		arg.NewPrice,
 		arg.EngineVolume,
 		arg.Transmission,
 		arg.BodyType,

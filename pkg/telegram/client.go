@@ -1,7 +1,7 @@
 package telegram
 
 import (
-	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
+	tgbotapi "github.com/OvyFlash/telegram-bot-api"
 	"github.com/pkg/errors"
 
 	"github.com/gudimz/polovni-auto-alert/pkg/logger"

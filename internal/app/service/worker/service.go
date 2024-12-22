@@ -8,7 +8,8 @@ import (
 	"runtime/debug"
 	"time"
 
-	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
+	tgbotapi "github.com/OvyFlash/telegram-bot-api"
+	"github.com/guregu/null"
 	pkgerrors "github.com/pkg/errors"
 
 	"github.com/gudimz/polovni-auto-alert/internal/pkg/ds"
@@ -119,8 +120,11 @@ func (s *Service) ProcessListings(ctx context.Context) error {
 		}
 
 		isNeedSend := false
+		newPrice := null.NewString("", false)
+		// if the notification failed, we need to send it again
 		if notification.Status == ds.StatusFailed {
 			isNeedSend = true
+			newPrice = listing.NewPrice
 		}
 
 		if err = s.repo.UpsertListing(ctx, ds.UpsertListingRequest{
@@ -128,6 +132,7 @@ func (s *Service) ProcessListings(ctx context.Context) error {
 			SubscriptionID: listing.SubscriptionID,
 			Title:          listing.Title,
 			Price:          listing.Price,
+			NewPrice:       newPrice,
 			EngineVolume:   listing.EngineVolume,
 			Transmission:   listing.Transmission,
 			BodyType:       listing.BodyType,
@@ -153,6 +158,17 @@ func (s *Service) ProcessListings(ctx context.Context) error {
 
 // sendListing sends a listing message to the user's tg with all the details.
 func (s *Service) sendListing(ctx context.Context, chatID int64, listing ds.ListingResponse) error {
+	price := listing.Price
+
+	if listing.NewPrice.Valid && listing.NewPrice.String != listing.Price {
+		direction := "🔼"
+		if listing.NewPrice.String < listing.Price {
+			direction = "🔽"
+		}
+
+		price = fmt.Sprintf("%s➡️%s %s", listing.Price, listing.NewPrice.String, direction)
+	}
+
 	text := fmt.Sprintf(`
 
 	%s
@@ -169,7 +185,7 @@ func (s *Service) sendListing(ctx context.Context, chatID int64, listing ds.List
 	`,
 		tgbotapi.EscapeText(tgbotapi.ModeMarkdownV2, "👋 Hi, here's a new listing for your subscription."),
 		tgbotapi.EscapeText(tgbotapi.ModeMarkdownV2, listing.Title),
-		tgbotapi.EscapeText(tgbotapi.ModeMarkdownV2, listing.Price),
+		tgbotapi.EscapeText(tgbotapi.ModeMarkdownV2, price),
 		tgbotapi.EscapeText(tgbotapi.ModeMarkdownV2, listing.EngineVolume),
 		tgbotapi.EscapeText(tgbotapi.ModeMarkdownV2, listing.Transmission),
 		tgbotapi.EscapeText(tgbotapi.ModeMarkdownV2, listing.BodyType),
