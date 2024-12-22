@@ -2,6 +2,8 @@ package ds
 
 import (
 	"time"
+
+	"github.com/guregu/null"
 )
 
 type (
@@ -47,35 +49,37 @@ type (
 	}
 
 	UpsertListingRequest struct {
-		ListingID      string    `json:"listing_id"`
-		SubscriptionID string    `json:"subscription_id"`
-		Title          string    `json:"title"`
-		Price          string    `json:"price"`
-		EngineVolume   string    `json:"engine_volume"`
-		Transmission   string    `json:"transmission"`
-		BodyType       string    `json:"body_type"`
-		Mileage        string    `json:"mileage"`
-		Location       string    `json:"location"`
-		Link           string    `json:"link"`
-		Date           time.Time `json:"date"`
-		IsNeedSend     bool      `json:"is_need_send"`
+		ListingID      string      `json:"listing_id"`
+		SubscriptionID string      `json:"subscription_id"`
+		Title          string      `json:"title"`
+		Price          string      `json:"price"`
+		NewPrice       null.String `json:"new_price"`
+		EngineVolume   string      `json:"engine_volume"`
+		Transmission   string      `json:"transmission"`
+		BodyType       string      `json:"body_type"`
+		Mileage        string      `json:"mileage"`
+		Location       string      `json:"location"`
+		Link           string      `json:"link"`
+		Date           time.Time   `json:"date"`
+		IsNeedSend     bool        `json:"is_need_send"`
 	}
 
 	ListingResponse struct {
-		ID             string    `json:"id"`
-		ListingID      string    `json:"listing_id"`
-		SubscriptionID string    `json:"subscription_id"`
-		Title          string    `json:"title"`
-		Price          string    `json:"price"`
-		EngineVolume   string    `json:"engine_volume"`
-		Transmission   string    `json:"transmission"`
-		BodyType       string    `json:"body_type"`
-		Mileage        string    `json:"mileage"`
-		Location       string    `json:"location"`
-		Link           string    `json:"link"`
-		Date           time.Time `json:"date"`
-		IsNeedSend     bool      `json:"is_need_send"`
-		CreatedAt      time.Time `json:"created_at"`
-		UpdatedAt      time.Time `json:"updated_at"`
+		ID             string      `json:"id"`
+		ListingID      string      `json:"listing_id"`
+		SubscriptionID string      `json:"subscription_id"`
+		Title          string      `json:"title"`
+		Price          string      `json:"price"`
+		NewPrice       null.String `json:"new_price"`
+		EngineVolume   string      `json:"engine_volume"`
+		Transmission   string      `json:"transmission"`
+		BodyType       string      `json:"body_type"`
+		Mileage        string      `json:"mileage"`
+		Location       string      `json:"location"`
+		Link           string      `json:"link"`
+		Date           time.Time   `json:"date"`
+		IsNeedSend     bool        `json:"is_need_send"`
+		CreatedAt      time.Time   `json:"created_at"`
+		UpdatedAt      time.Time   `json:"updated_at"`
 	}
 )

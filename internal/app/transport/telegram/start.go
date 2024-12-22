@@ -3,7 +3,7 @@ package telegram
 import (
 	"context"
 
-	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
+	tgbotapi "github.com/OvyFlash/telegram-bot-api"
 	"github.com/pkg/errors"
 
 	"github.com/gudimz/polovni-auto-alert/internal/pkg/ds"
@@ -13,7 +13,7 @@ import (
 const startButtonsPerRow = 2
 
 // handleStart handles the /start command.
-func (h *BotHandler) handleStart(ctx context.Context, chat *tgbotapi.Chat) error {
+func (h *BotHandler) handleStart(ctx context.Context, chat tgbotapi.Chat) error {
 	text := `
 👋 Welcome to Polovni Automobili Alert Bot!
 

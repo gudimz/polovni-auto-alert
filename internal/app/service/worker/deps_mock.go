@@ -13,7 +13,7 @@ import (
 	context "context"
 	reflect "reflect"
 
-	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
+	tgbotapi "github.com/OvyFlash/telegram-bot-api"
 	ds "github.com/gudimz/polovni-auto-alert/internal/pkg/ds"
 	telegram "github.com/gudimz/polovni-auto-alert/pkg/telegram"
 	gomock "go.uber.org/mock/gomock"

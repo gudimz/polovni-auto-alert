@@ -185,7 +185,7 @@ func (r *Repository) GetListingsBySubscriptionID(
 	for _, row := range rows {
 		var listing ds.ListingResponse
 
-		listing, err = listingFromDB(row)
+		listing, err = listingFromListingsBySubscriptionIDDB(row)
 		if err != nil {
 			r.l.Warn("failed to convert listing from DB", logger.ErrAttr(err))
 			continue
@@ -208,7 +208,7 @@ func (r *Repository) GetListingsByIsNeedSend(ctx context.Context, isNeedSend boo
 	for _, row := range rows {
 		var listing ds.ListingResponse
 
-		listing, err = listingFromDB(row)
+		listing, err = listingFromListingsByIsNeedSendDB(row)
 		if err != nil {
 			r.l.Warn("failed to convert listing from DB", logger.ErrAttr(err))
 			continue

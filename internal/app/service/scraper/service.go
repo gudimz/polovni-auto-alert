@@ -8,6 +8,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/guregu/null"
 	"github.com/pkg/errors"
 
 	"github.com/gudimz/polovni-auto-alert/internal/pkg/ds"
@@ -211,6 +212,7 @@ func (s *Service) scrapeAllListings(ctx context.Context, sub ds.SubscriptionResp
 			SubscriptionID: sub.ID,
 			Title:          listing.Title,
 			Price:          listing.Price,
+			NewPrice:       null.NewString("", false),
 			EngineVolume:   listing.EngineVolume,
 			Transmission:   listing.Transmission,
 			BodyType:       listing.BodyType,
@@ -261,25 +263,36 @@ func (s *Service) scrapeNewListings(ctx context.Context, sub ds.SubscriptionResp
 	}
 
 	for _, listing := range listings {
-		price, exists := existingListingIDSet[listing.ID]
-		// check if the listing not exists or if the price has changed
-		if !exists || price != listing.Price {
-			if err = s.repo.UpsertListing(ctx, ds.UpsertListingRequest{
-				ListingID:      listing.ID,
-				SubscriptionID: sub.ID,
-				Title:          listing.Title,
-				Price:          listing.Price,
-				EngineVolume:   listing.EngineVolume,
-				Transmission:   listing.Transmission,
-				BodyType:       listing.BodyType,
-				Mileage:        listing.Mileage,
-				Location:       listing.Location,
-				Link:           listing.Link,
-				Date:           listing.Date,
-				IsNeedSend:     isNeedSend, // it's important for send
-			}); err != nil {
-				return errors.Wrap(err, "failed to upsert listings for subscription ID "+sub.ID)
-			}
+		oldPrice, exists := existingListingIDSet[listing.ID]
+
+		// check if the listing exists
+		if exists && listing.Price == oldPrice {
+			continue
+		}
+
+		req := ds.UpsertListingRequest{ //nolint:exhaustruct,nolintlint
+			ListingID:      listing.ID,
+			SubscriptionID: sub.ID,
+			Title:          listing.Title,
+			EngineVolume:   listing.EngineVolume,
+			Transmission:   listing.Transmission,
+			BodyType:       listing.BodyType,
+			Mileage:        listing.Mileage,
+			Location:       listing.Location,
+			Link:           listing.Link,
+			Date:           listing.Date,
+			IsNeedSend:     isNeedSend, // it's important for send
+		}
+
+		if !exists {
+			req.Price = listing.Price
+		} else {
+			req.Price = oldPrice
+			req.NewPrice = null.NewString(listing.Price, listing.Price != "")
+		}
+
+		if err = s.repo.UpsertListing(ctx, req); err != nil {
+			return errors.Wrap(err, "failed to upsert listings for subscription ID "+sub.ID)
 		}
 	}
 

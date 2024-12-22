@@ -69,6 +69,7 @@ type Listing struct {
 	IsNeedSend     bool             `json:"is_need_send"`
 	CreatedAt      pgtype.Timestamp `json:"created_at"`
 	UpdatedAt      pgtype.Timestamp `json:"updated_at"`
+	NewPrice       pgtype.Text      `json:"new_price"`
 }
 
 type Notification struct {
