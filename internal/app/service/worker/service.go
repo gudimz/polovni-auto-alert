@@ -161,12 +161,12 @@ func (s *Service) sendListing(ctx context.Context, chatID int64, listing ds.List
 	price := listing.Price
 
 	if listing.NewPrice.Valid && listing.NewPrice.String != listing.Price {
-		direction := "🔼"
+		direction := "🔺"
 		if listing.NewPrice.String < listing.Price {
-			direction = "🔽"
+			direction = "🔻"
 		}
 
-		price = fmt.Sprintf("%s➡️%s %s", listing.Price, listing.NewPrice.String, direction)
+		price = fmt.Sprintf("⚠%s%s%s", listing.Price, direction, listing.NewPrice.String)
 	}
 
 	text := fmt.Sprintf(`
