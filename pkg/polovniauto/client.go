@@ -35,6 +35,7 @@ var (
 const (
 	urlPA = "https://www.polovniautomobili.com"
 
+	httpTimeout    = 60 * time.Second
 	delay          = 1 * time.Second
 	maxRandomDelay = 3
 )
@@ -46,7 +47,7 @@ func NewClient(l *logger.Logger, cfg *Config) *Client {
 		l:          l,
 		cfg:        cfg,
 		baseURL:    baseURL,
-		httpClient: &http.Client{Timeout: 10 * time.Second}, //nolint:nolintlint,mnd
+		httpClient: &http.Client{Timeout: httpTimeout},
 	}
 }
 
