@@ -16,10 +16,9 @@ import (
 )
 
 type Config struct {
-	LogLevel           string        `envconfig:"LOG_LEVEL" default:"info"`
-	ScraperInterval    time.Duration `envconfig:"SCRAPER_INTERVAL" default:"10m"`
-	ScraperStartOffset time.Duration `envconfig:"SCRAPER_START_OFFSET" default:"0m"`
-	Workers            int           `envconfig:"SCRAPER_WORKERS_COUNT" default:"5"`
+	LogLevel        string        `envconfig:"LOG_LEVEL" default:"info"`
+	ScraperInterval time.Duration `envconfig:"SCRAPER_INTERVAL" default:"10m"`
+	Workers         int           `envconfig:"SCRAPER_WORKERS_COUNT" default:"5"`
 }
 
 func main() {
@@ -65,7 +64,6 @@ func run() {
 		paCli,
 		fetch,
 		cfg.ScraperInterval,
-		cfg.ScraperStartOffset,
 		cfg.Workers,
 	)
 
