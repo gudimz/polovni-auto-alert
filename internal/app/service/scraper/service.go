@@ -2,7 +2,6 @@ package scraper
 
 import (
 	"context"
-	"fmt"
 	"runtime/debug"
 	"strings"
 	"sync"
@@ -18,13 +17,12 @@ import (
 )
 
 type Service struct {
-	l           *logger.Logger
-	repo        Repository
-	paAdapter   PolovniAutoAdapter
-	fetcher     Fetcher
-	interval    time.Duration
-	startOffset time.Duration
-	workers     int
+	l         *logger.Logger
+	repo      Repository
+	paAdapter PolovniAutoAdapter
+	fetcher   Fetcher
+	interval  time.Duration
+	workers   int
 	// TODO: add job for updating the cache
 	chassisList *cache.Storage[string, string]
 }
@@ -36,7 +34,6 @@ func NewService(
 	paAdapter PolovniAutoAdapter,
 	fetcher Fetcher,
 	interval time.Duration,
-	startOffset time.Duration,
 	workers int,
 ) *Service {
 	return &Service{
@@ -45,7 +42,6 @@ func NewService(
 		paAdapter:   paAdapter,
 		fetcher:     fetcher,
 		interval:    interval,
-		startOffset: startOffset,
 		workers:     workers,
 		chassisList: cache.New[string, string](),
 	}
@@ -61,12 +57,8 @@ func (s *Service) Start(ctx context.Context) error {
 
 	s.chassisList.SetBatch(chassis)
 
-	s.l.Info(fmt.Sprintf("scraper service will start after: %v, interval: %v", s.startOffset, s.interval))
+	s.l.Info("scraper interval set to", logger.DurationAttr("interval", s.interval))
 
-	// add a wait to not match the sending of notifications
-	time.Sleep(s.startOffset)
-	// to distinguish new listings from old ones,
-	// we save all listings in the database when we start the app
 	if err = s.ScrapeNewListings(ctx); err != nil {
 		return err
 	}
@@ -113,7 +105,7 @@ func (s *Service) ScrapeAllListings(ctx context.Context) error {
 
 	errCh := s.scrapeSubscriptions(ctx, subscriptions, s.scrapeAllListings)
 
-	for err := range errCh {
+	for err = range errCh {
 		if err != nil {
 			s.l.Error("scrape all listings error", logger.ErrAttr(err))
 			return err
@@ -139,7 +131,7 @@ func (s *Service) ScrapeNewListings(ctx context.Context) error {
 
 	errCh := s.scrapeSubscriptions(ctx, subscriptions, s.scrapeNewListings)
 
-	for err := range errCh {
+	for err = range errCh {
 		if err != nil {
 			return errors.Wrap(err, "scrape new listings error")
 		}
@@ -226,6 +218,8 @@ func (s *Service) scrapeAllListings(ctx context.Context, sub ds.SubscriptionResp
 		}
 	}
 
+	s.l.Info("scraped new listings for subscription", logger.StringAttr("subscriptionID", sub.ID))
+
 	return nil
 }
 
@@ -295,6 +289,8 @@ func (s *Service) scrapeNewListings(ctx context.Context, sub ds.SubscriptionResp
 			return errors.Wrap(err, "failed to upsert listings for subscription ID "+sub.ID)
 		}
 	}
+
+	s.l.Info("scraped new listings for subscription", logger.StringAttr("subscriptionID", sub.ID))
 
 	return nil
 }

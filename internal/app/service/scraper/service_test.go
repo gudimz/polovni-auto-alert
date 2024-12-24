@@ -37,7 +37,6 @@ func (s *ServiceTestSuite) SetupTest() {
 		s.mockPpolovniAuto,
 		s.mockFetcher,
 		10*time.Second,
-		0,
 		5,
 	)
 

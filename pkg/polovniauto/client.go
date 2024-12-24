@@ -8,6 +8,7 @@ import (
 	"html"
 	"io"
 	"math/rand/v2"
+	"net"
 	"net/http"
 	"net/url"
 	"strconv"
@@ -35,7 +36,16 @@ var (
 const (
 	urlPA = "https://www.polovniautomobili.com"
 
-	httpTimeout    = 60 * time.Second
+	httpTimeout           = 60 * time.Second
+	maxIdleConnects       = 100
+	idleConnTimeout       = 90 * time.Second
+	maxConnPerHost        = 30
+	tlsHandshakeTimeout   = 15 * time.Second
+	expectContinueTimeout = 1 * time.Second
+	responseHeaderTimeout = 15 * time.Second
+	dialerTimeout         = 30 * time.Second
+	dialerKeepAlive       = 30 * time.Second
+
 	delay          = 1 * time.Second
 	maxRandomDelay = 3
 )
@@ -44,10 +54,24 @@ func NewClient(l *logger.Logger, cfg *Config) *Client {
 	baseURL, _ := url.Parse(urlPA)
 
 	return &Client{
-		l:          l,
-		cfg:        cfg,
-		baseURL:    baseURL,
-		httpClient: &http.Client{Timeout: httpTimeout},
+		l:       l,
+		cfg:     cfg,
+		baseURL: baseURL,
+		httpClient: &http.Client{
+			Timeout: httpTimeout,
+			Transport: &http.Transport{
+				MaxIdleConns:          maxIdleConnects,
+				MaxConnsPerHost:       maxConnPerHost,
+				IdleConnTimeout:       idleConnTimeout,
+				TLSHandshakeTimeout:   tlsHandshakeTimeout,
+				ExpectContinueTimeout: expectContinueTimeout,
+				ResponseHeaderTimeout: responseHeaderTimeout,
+				DialContext: (&net.Dialer{ //nolint:exhaustruct,nolintlint
+					Timeout:   dialerTimeout,
+					KeepAlive: dialerKeepAlive,
+				}).DialContext,
+			},
+		},
 	}
 }
 
@@ -306,6 +330,8 @@ func (c *Client) fetchPage(ctx context.Context, u *url.URL) (string, error) {
 		return "", fmt.Errorf("error creating request: %w", err)
 	}
 
+	req.Header.Set("User-Agent", getRandomUserAgent())
+
 	resp, err := c.httpClient.Do(req)
 	if err != nil {
 		return "", fmt.Errorf("error making request: %w", err)
@@ -385,4 +411,18 @@ func (c *Client) parseListings(bodyStr string) ([]Listing, error) {
 	})
 
 	return listings, nil
+}
+
+// getRandomUserAgent returns a random user agent string.
+func getRandomUserAgent() string {
+	userAgents := []string{
+		"Mozilla/5.0 (iPhone; CPU iPhone OS 11_0 like Mac OS X) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/43.0.1355.1599 Mobile Safari/537.36",                                           //nolint:lll
+		"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_0) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/75.0.3770.100 Safari/537.36",                                                          //nolint:lll
+		"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.2 Safari/605.1.15",                                                              //nolint:lll
+		"Mozilla/5.0 (Linux; U; Android 13; en-id; CPH2375 Build/TP1A.220905.001) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.88 Mobile Safari/537.36 HeyTapBrowser/45.10.4.1.1", //nolint:lll
+		"Mozilla/5.0 (Linux; Android 14; Pixel 8 Pro Build/AP2A.240905.003; ) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0.6723.107 Mobile Safari/537.36 ButtonSDK/7.0.0",             //nolint:lll
+		"Mozilla/5.0 (Linux; Android 14; 2201122G Build/UKQ1.230917.001) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0.6723.106 Mobile Safari/537.36 OPX/2.5",                          //nolint:lll
+	}
+
+	return userAgents[rand.IntN(len(userAgents))] //nolint:gosec,nolintlint
 }

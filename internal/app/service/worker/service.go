@@ -119,11 +119,20 @@ func (s *Service) ProcessListings(ctx context.Context) error {
 			)
 		}
 
+		price := listing.Price
+		newPrice := listing.NewPrice
+
+		// if the price has changed, we need to update price and reset new price
+		if listing.NewPrice.Valid && listing.NewPrice.String != "" {
+			price = listing.NewPrice.String
+			newPrice = null.NewString("", false)
+		}
+
 		isNeedSend := false
-		newPrice := null.NewString("", false)
 		// if the notification failed, we need to send it again
 		if notification.Status == ds.StatusFailed {
 			isNeedSend = true
+			price = listing.Price
 			newPrice = listing.NewPrice
 		}
 
@@ -131,7 +140,7 @@ func (s *Service) ProcessListings(ctx context.Context) error {
 			ListingID:      listing.ListingID,
 			SubscriptionID: listing.SubscriptionID,
 			Title:          listing.Title,
-			Price:          listing.Price,
+			Price:          price,
 			NewPrice:       newPrice,
 			EngineVolume:   listing.EngineVolume,
 			Transmission:   listing.Transmission,
@@ -161,12 +170,15 @@ func (s *Service) sendListing(ctx context.Context, chatID int64, listing ds.List
 	price := listing.Price
 
 	if listing.NewPrice.Valid && listing.NewPrice.String != listing.Price {
+		attention := "🔴"
 		direction := "🔺"
+
 		if listing.NewPrice.String < listing.Price {
+			attention = "🟢"
 			direction = "🔻"
 		}
 
-		price = fmt.Sprintf("⚠%s%s%s", listing.Price, direction, listing.NewPrice.String)
+		price = fmt.Sprintf("%s%s%s%s", attention, listing.Price, direction, listing.NewPrice.String)
 	}
 
 	text := fmt.Sprintf(`
