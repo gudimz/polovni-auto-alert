@@ -11,6 +11,7 @@ import (
 	tgbotapi "github.com/OvyFlash/telegram-bot-api"
 	"github.com/guregu/null"
 	pkgerrors "github.com/pkg/errors"
+	"github.com/shopspring/decimal"
 
 	"github.com/gudimz/polovni-auto-alert/internal/pkg/ds"
 	"github.com/gudimz/polovni-auto-alert/pkg/logger"
@@ -173,12 +174,23 @@ func (s *Service) sendListing(ctx context.Context, chatID int64, listing ds.List
 		attention := "🔴"
 		direction := "🔺"
 
-		if listing.NewPrice.String < listing.Price {
+		// check if the new price is less than the old price
+		newPrice, err := decimal.NewFromString(listing.NewPrice.ValueOrZero())
+		if err != nil {
+			return fmt.Errorf("failed to parse new price: %w", err)
+		}
+
+		oldPrice, err := decimal.NewFromString(listing.Price)
+		if err != nil {
+			return fmt.Errorf("failed to parse old price: %w", err)
+		}
+
+		if newPrice.LessThan(oldPrice) {
 			attention = "🟢"
 			direction = "🔻"
 		}
 
-		price = fmt.Sprintf("%s%s%s%s", attention, listing.Price, direction, listing.NewPrice.String)
+		price = attention + listing.Price + direction + listing.NewPrice.ValueOrZero()
 	}
 
 	text := fmt.Sprintf(`

@@ -1,6 +1,7 @@
 module github.com/gudimz/polovni-auto-alert
 
 go 1.23.2
+
 require (
 	github.com/OvyFlash/telegram-bot-api v0.0.0-20241219171906-3f2ca0c14ada
 	github.com/PuerkitoBio/goquery v1.10.2
@@ -12,6 +13,7 @@ require (
 	github.com/kelseyhightower/envconfig v1.4.0
 	github.com/lib/pq v1.10.9
 	github.com/pkg/errors v0.9.1
+	github.com/shopspring/decimal v1.4.0
 	github.com/stretchr/testify v1.10.0
 	go.uber.org/mock v0.5.0
 )
