@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"net/http"
 	"runtime/debug"
+	"strings"
 	"time"
 
 	tgbotapi "github.com/OvyFlash/telegram-bot-api"
@@ -170,19 +171,30 @@ func (s *Service) ProcessListings(ctx context.Context) error {
 func (s *Service) sendListing(ctx context.Context, chatID int64, listing ds.ListingResponse) error {
 	price := listing.Price
 
-	if listing.NewPrice.Valid && listing.NewPrice.String != listing.Price {
+	if !listing.NewPrice.IsZero() && listing.NewPrice.ValueOrZero() != listing.Price {
 		attention := "🔴"
 		direction := "🔺"
 
 		// check if the new price is less than the old price
-		newPrice, err := decimal.NewFromString(listing.NewPrice.ValueOrZero())
+		useAttention := true
+		cleanedNewPrice := strings.ReplaceAll(listing.NewPrice.ValueOrZero(), "€", "")
+		cleanedNewPrice = strings.TrimSpace(cleanedNewPrice)
+
+		newPrice, err := decimal.NewFromString(cleanedNewPrice)
 		if err != nil {
-			return fmt.Errorf("failed to parse new price: %w", err)
+			s.l.Warn("failed to parse new price", logger.StringAttr("new_price", cleanedNewPrice))
+
+			useAttention = false
 		}
 
-		oldPrice, err := decimal.NewFromString(listing.Price)
+		cleanedOldPrice := strings.ReplaceAll(listing.Price, "€", "")
+		cleanedOldPrice = strings.TrimSpace(cleanedOldPrice)
+
+		oldPrice, err := decimal.NewFromString(cleanedOldPrice)
 		if err != nil {
-			return fmt.Errorf("failed to parse old price: %w", err)
+			s.l.Warn("failed to parse old price", logger.StringAttr("old_price", cleanedOldPrice))
+
+			useAttention = false
 		}
 
 		if newPrice.LessThan(oldPrice) {
@@ -190,7 +202,10 @@ func (s *Service) sendListing(ctx context.Context, chatID int64, listing ds.List
 			direction = "🔻"
 		}
 
-		price = attention + listing.Price + direction + listing.NewPrice.ValueOrZero()
+		// all price converts to decimal
+		if useAttention {
+			price = attention + listing.Price + direction + listing.NewPrice.ValueOrZero()
+		}
 	}
 
 	text := fmt.Sprintf(`
