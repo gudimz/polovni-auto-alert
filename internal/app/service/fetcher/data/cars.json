@@ -1,5 +1,6 @@
 {
   "ac": [
+    "ace",
     "cobra",
     "ostalo"
   ],
@@ -19,12 +20,12 @@
     "164",
     "166",
     "alfasud",
-    "alfetta",
     "brera",
     "giulia",
     "giulietta",
     "gt",
     "gtv",
+    "junior",
     "mito",
     "spider",
     "stelvio",
@@ -33,6 +34,19 @@
   ],
   "alpina": [
     "b-12",
+    "ostalo"
+  ],
+  "aro": [
+    "serija-10",
+    "ostalo"
+  ],
+  "asia-motors": [
+    "rocsta",
+    "ostalo"
+  ],
+  "aston-martin": [
+    "db-9",
+    "db-11",
     "ostalo"
   ],
   "audi": [
@@ -50,6 +64,7 @@
     "a6-allroad",
     "a7",
     "a8",
+    "coupe",
     "e-tron",
     "e-tron-gt",
     "q2",
@@ -59,17 +74,14 @@
     "q7",
     "q8",
     "q8-e-tron",
-    "quattro",
     "r8",
     "rs3",
-    "rs4",
     "rs5",
     "rs6",
     "rs7",
     "rs-e-tron-gt",
     "rs-q3",
     "rs-q8",
-    "s1",
     "s3",
     "s4",
     "s5",
@@ -80,6 +92,7 @@
     "sq7",
     "sq8",
     "tt",
+    "tt-rs",
     "tts",
     "ostalo"
   ],
@@ -88,7 +101,14 @@
     "ex",
     "ostalo"
   ],
+  "baic": [
+    "eu5",
+    "x55",
+    "x75",
+    "ostalo"
+  ],
   "baw": [
+    "brumby",
     "pony",
     "ostalo"
   ],
@@ -105,6 +125,7 @@
     "120",
     "123",
     "125",
+    "128",
     "128ti",
     "m-135i",
     "m-140i",
@@ -121,14 +142,13 @@
     "318",
     "318-gt",
     "320",
+    "320d",
     "320-gt",
     "323",
-    "324",
     "325",
     "325-gt",
     "328",
     "330",
-    "330-gt",
     "335",
     "m-340d",
     "340i",
@@ -142,7 +162,6 @@
     "430",
     "435",
     "m440i",
-    "m-440d",
     "serija-5",
     "518",
     "520",
@@ -159,7 +178,6 @@
     "545",
     "550",
     "m550",
-    "m-550i",
     "serija-6",
     "620-gt",
     "630",
@@ -189,7 +207,6 @@
     "i7",
     "i8",
     "ix",
-    "ix1",
     "ix3",
     "serija-m",
     "m2",
@@ -214,15 +231,8 @@
     "serija-z",
     "z3",
     "z4",
+    "1602",
     "2002",
-    "ostalo"
-  ],
-  "buick": [
-    "skyhawk",
-    "ostalo"
-  ],
-  "byd": [
-    "seal",
     "ostalo"
   ],
   "cadillac": [
@@ -236,27 +246,27 @@
   ],
   "chery": [
     "ego",
+    "eq-1",
     "fx",
+    "tengo",
     "tiggo",
     "ostalo"
   ],
   "chevrolet": [
     "aveo",
+    "blazer",
     "camaro",
     "captiva",
     "corvette",
     "cruze",
     "epica",
-    "evanda",
     "kalos",
     "lacetti",
-    "malibu",
     "matiz",
     "nubira",
     "orlando",
     "spark",
     "tacuma",
-    "trailblazer",
     "trax",
     "ostalo"
   ],
@@ -265,15 +275,18 @@
     "300c",
     "crossfire",
     "grand-voyager",
+    "le-baron",
     "neon",
     "pt-cruiser",
     "sebring",
+    "stratus",
     "voyager",
     "ostalo"
   ],
   "citroen": [
     "2cv",
     "ami",
+    "ax",
     "berlingo",
     "bx",
     "c-aircross",
@@ -300,7 +313,6 @@
     "c5x",
     "c6",
     "c8",
-    "c15",
     "cx",
     "ds",
     "ds3",
@@ -317,18 +329,17 @@
     "xm",
     "xsara",
     "xsara-picasso",
-    "zx",
     "ostalo"
   ],
   "cupra": [
     "ateca",
+    "born",
     "formentor",
     "leon",
+    "terramar",
     "ostalo"
   ],
   "dacia": [
-    "1307",
-    "aro",
     "dokker",
     "duster",
     "jogger",
@@ -343,6 +354,8 @@
     "ostalo"
   ],
   "daewoo": [
+    "espero",
+    "evanda",
     "kalos",
     "lacetti",
     "lanos",
@@ -351,13 +364,14 @@
     "nexia",
     "nubira",
     "tacuma",
+    "tico",
     "ostalo"
   ],
   "daihatsu": [
-    "charade",
     "cuore",
     "feroza",
     "materia",
+    "move",
     "rocky",
     "sirion",
     "terios",
@@ -365,6 +379,7 @@
     "ostalo"
   ],
   "dayun": [
+    "dy3",
     "yuehu",
     "ostalo"
   ],
@@ -376,6 +391,7 @@
     "journey",
     "nitro",
     "ram",
+    "viper",
     "ostalo"
   ],
   "dr": [
@@ -392,8 +408,7 @@
   ],
   "ferrari": [
     "296",
-    "458-italia",
-    "488",
+    "599",
     "812",
     "california",
     "f8",
@@ -416,8 +431,11 @@
     "600",
     "850",
     "1107",
+    "albea",
     "brava",
     "bravo",
+    "campagnola",
+    "cinquecento",
     "coupe",
     "croma",
     "doblo",
@@ -425,6 +443,7 @@
     "fiorino",
     "freemont",
     "fullback",
+    "grande-panda",
     "grande-punto",
     "idea",
     "linea",
@@ -435,6 +454,7 @@
     "panda",
     "punto",
     "qubo",
+    "ritmo",
     "scudo",
     "sedici",
     "seicento",
@@ -446,16 +466,16 @@
     "ostalo"
   ],
   "ford": [
-    "aspire",
     "b-max",
     "c-max",
     "cortina",
-    "courier",
     "ecosport",
     "edge",
     "escort",
     "explorer",
+    "f-150",
     "f-250",
+    "festiva",
     "fiesta",
     "focus",
     "fusion",
@@ -468,7 +488,6 @@
     "maverick",
     "mondeo",
     "mustang",
-    "probe",
     "puma",
     "ranger",
     "s-max",
@@ -476,15 +495,15 @@
     "sierra",
     "street-ka",
     "taunus",
-    "thunderbird",
+    "taurus",
+    "tourneo",
     "tourneo-connect",
     "tourneo-courier",
     "tourneo-custom",
     "transit-connect",
     "ostalo"
   ],
-  "foton": [
-    "tunland-g7",
+  "gaz": [
     "ostalo"
   ],
   "geely": [
@@ -493,8 +512,9 @@
     "starray",
     "ostalo"
   ],
-  "genesis": [
-    "g90",
+  "great-wall": [
+    "h6",
+    "steed",
     "ostalo"
   ],
   "honda": [
@@ -506,10 +526,8 @@
     "fr-v",
     "hr-v",
     "insight",
-    "integra",
     "jazz",
-    "legend",
-    "prelude",
+    "logo",
     "s2000",
     "stream",
     "zr-v",
@@ -542,29 +560,25 @@
     "kona",
     "lantra",
     "matrix",
-    "nexo",
     "pony",
     "santa-fe",
-    "santamo",
     "sonata",
-    "sonica",
-    "staria",
     "terracan",
     "trajet",
     "tucson",
     "veloster",
-    "venue",
     "ostalo"
   ],
   "infiniti": [
-    "ex30",
     "fx30",
     "fx35",
     "m30",
+    "m37",
     "q30",
     "q50",
     "q70",
     "qx30",
+    "qx70",
     "ostalo"
   ],
   "isuzu": [
@@ -588,7 +602,9 @@
     "xj",
     "xj6",
     "xj8",
+    "xj12",
     "xj40",
+    "xjs",
     "xk",
     "ostalo"
   ],
@@ -619,14 +635,13 @@
     "ceed",
     "ceed-sw",
     "cerato",
-    "clarus",
     "ev6",
     "magentis",
     "niro",
     "optima",
     "picanto",
-    "pride",
     "pro-ceed",
+    "retona",
     "rio",
     "sephia",
     "shuma",
@@ -645,9 +660,10 @@
     "112",
     "1200",
     "1300",
+    "1500",
+    "1600",
     "2101",
-    "2105",
-    "2107",
+    "2103",
     "aleko",
     "kalina",
     "niva",
@@ -660,11 +676,11 @@
     "aventador",
     "gallardo",
     "huracan",
-    "revuelto",
     "urus",
     "ostalo"
   ],
   "lancia": [
+    "dedra",
     "delta",
     "flavia",
     "kappa",
@@ -674,7 +690,6 @@
     "thema",
     "thesis",
     "ypsilon",
-    "zeta",
     "ostalo"
   ],
   "land-rover": [
@@ -696,7 +711,8 @@
     "ct-200h",
     "es",
     "gs",
-    "gs-450",
+    "gs-300",
+    "gx",
     "is",
     "is-200",
     "is-220",
@@ -711,23 +727,23 @@
     "ux",
     "ostalo"
   ],
+  "ligier": [
+    "ostalo"
+  ],
   "lincoln": [
     "continental",
-    "town-car",
     "ostalo"
   ],
   "linzda": [
     "m3",
     "ostalo"
   ],
-  "lynk-co": [
-    "01",
+  "lotus": [
+    "super-seven",
     "ostalo"
   ],
-  "mahindra": [
-    "bolero",
-    "cj",
-    "goa",
+  "lynk-co": [
+    "01",
     "ostalo"
   ],
   "maserati": [
@@ -740,18 +756,13 @@
     "quattroporte",
     "ostalo"
   ],
-  "maybach": [
-    "ostalo"
-  ],
   "mazda": [
     "2",
     "3",
     "5",
     "6",
-    "121",
     "323",
     "626",
-    "b-250",
     "bt-50",
     "cx-3",
     "cx-5",
@@ -761,15 +772,12 @@
     "cx-80",
     "demio",
     "mpv",
+    "mx-3",
     "mx-5",
     "mx-30",
     "premacy",
     "rx-8",
     "tribute",
-    "ostalo"
-  ],
-  "mclaren": [
-    "artura",
     "ostalo"
   ],
   "mercedes-benz": [
@@ -783,7 +791,6 @@
     "a-180",
     "a-190",
     "a-200",
-    "a-210",
     "a-220",
     "a-250",
     "a-35-amg",
@@ -797,6 +804,7 @@
     "b-220",
     "b-250",
     "c-klasa",
+    "c-160",
     "c-180",
     "c-200",
     "c-220",
@@ -814,7 +822,6 @@
     "c-43-amg",
     "c-63-amg",
     "ce-klasa",
-    "ce-220",
     "ce-230",
     "citan",
     "cla-klasa",
@@ -829,23 +836,20 @@
     "cla-45-amg",
     "cl-klasa",
     "cl-500",
-    "cl-600",
-    "cl-65-amg",
     "clc-klasa",
     "clc-180",
     "clc-200",
-    "clc-220",
     "cle-klasa",
+    "cle-200",
+    "cle-220d",
     "cle-300",
     "clk-klasa",
     "clk-200",
     "clk-220",
-    "clk-230",
     "clk-240",
     "clk-270",
     "clk-320",
     "clk-350",
-    "clk-430",
     "cls-klasa",
     "cls-220",
     "cls-220-shooting-brake",
@@ -853,11 +857,11 @@
     "cls-300",
     "cls-320",
     "cls-350",
+    "cls-350-shooting-brake",
     "cls-400",
     "cls-450",
     "cls-500",
     "cls-53-amg",
-    "cls-55-amg",
     "cls-63-amg",
     "e-klasa",
     "e-124",
@@ -898,7 +902,6 @@
     "gl-350",
     "gl-420",
     "gl-450",
-    "gl-500",
     "gla-klasa",
     "gla-45-amg",
     "gla-180",
@@ -917,7 +920,6 @@
     "glc-250",
     "glc-300",
     "glc-350",
-    "glc-400",
     "gle-klasa",
     "gle-43-amg",
     "gle-53-amg",
@@ -927,12 +929,12 @@
     "gle-350",
     "gle-400",
     "gle-450",
+    "gle-500",
     "gle-580",
     "glk-klasa",
     "glk-200",
     "glk-220",
     "glk-250",
-    "glk-280",
     "glk-320",
     "glk-350",
     "gls-klasa",
@@ -940,16 +942,15 @@
     "gls-350-d",
     "gls-400",
     "gls-450",
+    "gls-500",
     "gls-580",
     "gt",
     "gt-klasa",
     "gt-43-amg",
     "gt-53-amg",
     "gt-63-amg",
-    "gt-r",
     "gt-s",
     "ml-klasa",
-    "ml-230",
     "ml-250",
     "ml-270",
     "ml-280",
@@ -962,9 +963,9 @@
     "ml-55-amg",
     "ml-63-amg",
     "r-klasa",
-    "r-280",
     "r-320",
     "r-350",
+    "r-500",
     "s-klasa",
     "s-250",
     "s-280",
@@ -975,6 +976,7 @@
     "s-420",
     "s-450",
     "s-500",
+    "s-550",
     "s-580",
     "s-580-maybach",
     "s-600",
@@ -984,14 +986,16 @@
     "sl-300",
     "sl-350",
     "sl-500",
+    "sl-43-amg",
     "sl-55-amg",
-    "sl-560",
     "sl-63-amg",
     "slc-klasa",
     "slc-200",
+    "slc-300",
     "slk-klasa",
     "slk-200",
     "slk-230",
+    "slk-280",
     "slk-250",
     "t-klasa",
     "v-klasa",
@@ -1007,15 +1011,12 @@
     "5",
     "ehs",
     "hs",
-    "tf",
     "zr",
     "zs",
     "zs-ev",
     "ostalo"
   ],
   "mini": [
-    "1000",
-    "1300",
     "clubman",
     "cooper",
     "cooper-s",
@@ -1029,8 +1030,6 @@
     "asx",
     "carisma",
     "colt",
-    "cordia",
-    "eclipse",
     "eclipse-cross",
     "galant",
     "grandis",
@@ -1051,11 +1050,11 @@
     "ostalo"
   ],
   "nissan": [
-    "300-zx",
     "350z",
     "almera",
     "almera-tino",
     "ariya",
+    "cube",
     "juke",
     "leaf",
     "micra",
@@ -1073,7 +1072,12 @@
     "sunny",
     "terrano",
     "tiida",
+    "vanette",
     "x-trail",
+    "ostalo"
+  ],
+  "oldsmobile": [
+    "cutlass",
     "ostalo"
   ],
   "opel": [
@@ -1081,7 +1085,6 @@
     "agila",
     "ampera",
     "antara",
-    "arena",
     "ascona",
     "astra",
     "astra-f",
@@ -1093,7 +1096,6 @@
     "calibra",
     "cascada",
     "combo",
-    "commodore",
     "corsa",
     "corsa-a",
     "corsa-b",
@@ -1108,11 +1110,10 @@
     "insignia",
     "kadett",
     "karl",
-    "manta",
     "meriva",
-    "monterey",
     "mokka",
     "mokka-x",
+    "olympia",
     "omega",
     "rekord",
     "senator",
@@ -1136,6 +1137,7 @@
     "207",
     "208",
     "301",
+    "305",
     "306",
     "307",
     "308",
@@ -1173,13 +1175,12 @@
     "porter",
     "ostalo"
   ],
-  "polski-fiat": [
-    "126-p",
+  "polestar": [
+    "2",
     "ostalo"
   ],
   "pontiac": [
     "firebird",
-    "trans-sport",
     "ostalo"
   ],
   "porsche": [
@@ -1188,6 +1189,7 @@
     "924",
     "944",
     "boxster",
+    "carrera-gt",
     "cayenne",
     "cayman",
     "macan",
@@ -1195,13 +1197,10 @@
     "taycan",
     "ostalo"
   ],
-  "ram": [
-    "1500",
-    "25003500",
+  "proton": [
     "ostalo"
   ],
   "renault": [
-    "alpine-v6",
     "arkana",
     "austral",
     "captur",
@@ -1225,7 +1224,6 @@
     "r-9",
     "r-10",
     "r-11",
-    "r-18",
     "r-19",
     "r-21",
     "r-25",
@@ -1245,7 +1243,6 @@
     "ostalo"
   ],
   "rolls-royce": [
-    "cullinan",
     "flying-spur",
     "wraith",
     "ostalo"
@@ -1257,7 +1254,6 @@
     "200",
     "214",
     "400",
-    "420",
     "streetwise",
     "ostalo"
   ],
@@ -1294,15 +1290,10 @@
     "ceo",
     "ostalo"
   ],
-  "simca": [
-    "1100",
-    "ostalo"
-  ],
   "skoda": [
-    "100",
     "105",
     "110",
-    "120",
+    "1000-mb",
     "citigo",
     "enyaq",
     "fabia",
@@ -1330,10 +1321,10 @@
     "actyon",
     "korando",
     "kyron",
+    "musso",
     "rexton",
     "rodius",
     "tivoli",
-    "xlv",
     "ostalo"
   ],
   "subaru": [
@@ -1343,18 +1334,17 @@
     "justy",
     "legacy",
     "leone",
+    "levorg",
     "libero",
     "outback",
     "trezia",
     "tribeca",
-    "vivio",
     "xv",
     "ostalo"
   ],
   "suzuki": [
     "alto",
     "baleno",
-    "celerio",
     "grand-vitara",
     "ignis",
     "jimny",
@@ -1369,8 +1359,17 @@
     "wagon-r+",
     "ostalo"
   ],
+  "swm": [
+    "g01f",
+    "g03f",
+    "ostalo"
+  ],
   "tata": [
-    "indica",
+    "safari",
+    "ostalo"
+  ],
+  "tavria": [
+    "1103",
     "ostalo"
   ],
   "tesla": [
@@ -1401,7 +1400,7 @@
     "iq",
     "land-cruiser",
     "mr2",
-    "previa",
+    "picnic",
     "prius",
     "prius-+",
     "prius-plug-in",
@@ -1409,7 +1408,6 @@
     "proace-city-verso",
     "proace-verso",
     "rav-4",
-    "starlet",
     "supra",
     "urban-cruiser",
     "verso",
@@ -1421,9 +1419,6 @@
   ],
   "trabant": [
     "601",
-    "ostalo"
-  ],
-  "triumph": [
     "ostalo"
   ],
   "uaz": [
@@ -1442,7 +1437,6 @@
     "buba",
     "nova-buba",
     "caddy",
-    "corrado",
     "cross-polo",
     "eos",
     "fox",
@@ -1460,6 +1454,7 @@
     "golf-sportsvan",
     "id3",
     "id4",
+    "id7",
     "jetta",
     "lupo",
     "multivan",
@@ -1484,6 +1479,7 @@
     "t-cross",
     "t-roc",
     "taigo",
+    "tayron",
     "tiguan",
     "tiguan-allspace",
     "touareg",
@@ -1493,12 +1489,11 @@
     "ostalo"
   ],
   "volvo": [
+    "144",
     "240",
     "244",
-    "340",
-    "460",
+    "480",
     "740",
-    "760",
     "850",
     "940",
     "c30",
@@ -1506,7 +1501,6 @@
     "ex30",
     "s40",
     "s60",
-    "s70",
     "s80",
     "s90",
     "v40",
@@ -1546,14 +1540,12 @@
     "yugo-55",
     "yugo-60",
     "yugo-65",
-    "yugo-cabrio",
     "yugo-in-l",
     "yugo-tempo",
     "ostalo"
   ],
   "zhidou": [
     "d2",
-    "d2s",
     "ostalo"
   ]
 }
